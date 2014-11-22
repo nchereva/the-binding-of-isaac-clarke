@@ -21,11 +21,12 @@ window.onload = function() {
     var player;
     var cursors;
     var enemy;
+    var enemies;
 
     function preload () {
 
         game.load.image('logo', 'assets/sprite.png');
-        game.load.image('player', 'assets/isaac2.png');
+        game.load.image('player', 'assets/Player.png');
         game.load.image('enemy', 'assets/black_isaac.png');
 
     }
@@ -34,22 +35,40 @@ window.onload = function() {
 
         console.log(game.world);
 
+        //basic game settings
+        game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+        game.stage.backgroundColor = '#33cc33';
+
+        //adding player
         player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
         player.anchor.setTo(0.5, 0.5);
 
-        game.stage.backgroundColor = '#33cc33';
-
-        game.physics.startSystem(Phaser.Physics.P2JS);
-        game.physics.p2.enable(player);
-
-        cursors = game.input.keyboard.createCursorKeys();
-
-        var enemies = game.add.group();
+        //creating enemies
+        enemies = game.add.group();
         for (var i = 0; i< 20; i++) {
             enemies.create(Math.random() * 800, Math.random() * 600, 'enemy');
         }
 
+        //creating game physics
+        game.physics.startSystem(Phaser.Physics.P2JS);
+        game.physics.p2.enable(player);
         game.physics.p2.enable(enemies);
+
+        //go full screen on click
+        game.input.onDown.add(gofull, this);
+
+        cursors = game.input.keyboard.createCursorKeys();
+    }
+
+    function gofull() {
+
+        if (game.scale.isFullScreen) {
+            game.scale.startFullScreen(false);
+        } else {
+            game.scale.startFullScreen(false);
+        }
+
+
     }
 
     function update () {
