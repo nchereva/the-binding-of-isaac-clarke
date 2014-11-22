@@ -15,13 +15,11 @@
   var Bullet = require('./bullet/Bullet.js');
   //	var fire =
 
-  function preload() {
-    game.load.image('logo', 'assets/sprite.png');
-    game.load.image('player', 'assets/isaac2.png');
-    game.load.image('enemy', 'assets/black_isaac.png');
-    game.load.image('bullet', 'assets/black_isaac.png');
+    function preload () {
 
-  }
+        game.load.image('logo', 'assets/sprite.png');
+        game.load.image('player', 'assets/Player.png');
+        game.load.image('enemy', 'assets/black_isaac.png');
 
   function create() {
     game.physics.startSystem(Phaser.Physics.P2JS);
@@ -33,7 +31,8 @@
 
     game.physics.p2.updateBoundsCollisionGroup();
 
-    // console.log(game.world);
+        player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+        player.anchor.setTo(0.5, 0.5);
 
     player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
     game.physics.p2.enable(player);
@@ -98,29 +97,43 @@
       var enemy = enemies.create(Math.random() * 800, Math.random() * 600, 'enemy');
       enemy.body.setCollisionGroup(enemiesCollisionGroup);
       enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function(body) {
-        enemy.kill()
+        enemy.kill();
 				// console.log('collision')
       });
+	    //go full screen on click
+	    game.input.onDown.add(gofull, this);
+
+	    cursors = game.input.keyboard.createCursorKeys();
     }
 
-    // game.physics.p2.enable(enemies);
-    // game.physics.p2.enable(bullets);
-  }
+	  function gofull() {
 
-  function update() {
+		  if (game.scale.isFullScreen) {
+			  game.scale.startFullScreen(false);
+		  } else {
+			  game.scale.startFullScreen(false);
+		  }
 
-    if (cursors.left.isDown) {
-      player.body.velocity.x += -5;
-    } else if (cursors.right.isDown) {
-      player.body.velocity.x += 5;
+
+	  }
+   
+
+    function update () {
+
+        if(cursors.left.isDown) {
+            player.body.velocity.x += -5;
+        }
+        else if(cursors.right.isDown) {
+            player.body.velocity.x += 5;
+        }
+
+
+        if(cursors.up.isDown) {
+            player.body.velocity.y += -5;
+        }
+        else if (cursors.down.isDown) {
+            player.body.velocity.y += 5;
+        }
     }
 
-
-    if (cursors.up.isDown) {
-      player.body.velocity.y += -5;
-    } else if (cursors.down.isDown) {
-      player.body.velocity.y += 5;
-    }
-  }
-
-})();
+    };
