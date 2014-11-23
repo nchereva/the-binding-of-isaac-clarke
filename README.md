@@ -3,5 +3,6 @@
 ##Installation 
 
 1. ```$ npm install```
-2. ```$ gulp```
-3. ```$ pray```
+2. ```$ npm install -g gulp```
+3. ```$ gulp```
+4. ```$ pray```
