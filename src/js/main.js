@@ -111,6 +111,7 @@
 
 		for (var i = 0; i < 20; i++) {
 			var enemy = enemies.create(Math.random() * 800, Math.random() * 600, 'enemy');
+			enemy.body.fixedRotation = true;
 			enemy.body.setCollisionGroup(enemiesCollisionGroup);
 			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function(body) {
 				enemy.kill();
