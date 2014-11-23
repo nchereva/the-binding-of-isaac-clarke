@@ -6,18 +6,39 @@
 
   <!-- build:css main.min.css -->
   <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+
   <!-- /build -->
 </head>
 
 <body>
   <div id="isaac-for-web-game" class="game"></div>
 
-  <script src="/js/lib/phaser.js"></script>
+  <script src="/js/lib/phaser.js"></script> 
+  <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script> 
 
   <!-- build:js main.min.js -->
-  <script src="/js/main.min.js"></script>
-  <!-- /build -->
+  <script src="/js/main.min.js"></script> 
 
+  <!-- /build -->
+  <script>
+  var socket = io('http://localhost:8080');
+   socket.on('player', function(msg){
+    if (Phaser.Keyboard.LEFT == msg) {
+      player2.body.velocity.x += -5;
+    }
+    if (Phaser.Keyboard.RIGHT == msg) {
+      player2.body.velocity.x += 5;
+    } 
+
+    if (Phaser.Keyboard.UP == msg) {
+      player2.body.velocity.y += -5;
+    }
+    else if (Phaser.Keyboard.DOWN == msg) {
+      player2.body.velocity.y += 5;
+    }
+  });
+  </script>
 </body>
 </html>
 

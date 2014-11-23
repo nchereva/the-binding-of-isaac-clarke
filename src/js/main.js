@@ -34,16 +34,27 @@
 		game.physics.p2.updateBoundsCollisionGroup();
 
 		player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+
+
+		window.player2 = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+
 		player.anchor.setTo(0.5, 0.5);
+		player2.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
+		game.physics.p2.enable(player2);
 
 		// player.enableBody = true;
 //		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
+		player2.body.setCollisionGroup(playerCollisionGroup);
 		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
+			console.log('collision')
+		}, this);
+		player2.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
 			console.log('collision')
 		}, this)
 		player.body.fixedRotation = true;
+		player2.body.fixedRotation = true;
 
 		game.stage.backgroundColor = '#33cc33';
 
@@ -119,21 +130,31 @@
 
 
 	function update() {
+		var keyCode;
 
 		if (cursors.left.isDown) {
+			keyCode = cursors.left.keyCode;
 			player.body.velocity.x += -5;
 		}
 		else if (cursors.right.isDown) {
+			keyCode = cursors.right.keyCode;
 			player.body.velocity.x += 5;
 		}
 
 
 		if (cursors.up.isDown) {
+			keyCode = cursors.up.keyCode;
 			player.body.velocity.y += -5;
 		}
 		else if (cursors.down.isDown) {
+			keyCode = cursors.down.keyCode;
 			player.body.velocity.y += 5;
 		}
+		if(keyCode && socket){
+			socket.emit('player', keyCode);
+		}
 	}
+
+
 
 })();

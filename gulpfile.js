@@ -16,6 +16,20 @@ var gulp = require('gulp')
   , gulpif = require('gulp-if')
   , paths;
 
+var app = require('express')();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+
+io.on('connection', function(socket){
+  socket.on('player', function(msg){
+    socket.broadcast.emit('player', msg);
+  });
+});
+
+http.listen(8080, function(){
+  console.log('listening on *:3000');
+});
+
 var watching = false;
 
 paths = {
