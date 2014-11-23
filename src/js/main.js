@@ -23,16 +23,21 @@
 	}
 
 	function create() {
+
+		//basic game settings
+		game.stage.backgroundColor = '#33cc33';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setImpactEvents(true);
 
+		//collision groups
 		var playerCollisionGroup = game.physics.p2.createCollisionGroup();
 		var enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
 		var bulletCollisionGroup = game.physics.p2.createCollisionGroup();
 
 		game.physics.p2.updateBoundsCollisionGroup();
 
+		//creating player
 		player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
 		player.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
@@ -42,11 +47,8 @@
 		player.body.setCollisionGroup(playerCollisionGroup);
 		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
 			console.log('collision')
-		}, this)
+		}, this);
 		player.body.fixedRotation = true;
-
-		game.stage.backgroundColor = '#33cc33';
-
 
 		cursors = game.input.keyboard.createCursorKeys();
 
@@ -54,6 +56,7 @@
 		keys['a'] = game.input.keyboard.addKey(Phaser.Keyboard.A);
 		keys['s'] = game.input.keyboard.addKey(Phaser.Keyboard.S);
 		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
+		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
 
 		var bullets = game.add.group();
 		bullets.enableBody = true;
@@ -61,20 +64,26 @@
 
 		_.each(keys, function (key) {
 			key.onDown.add(function () {
-					var bullet
+
+					//fullscreen toggle
+					if(key.keyCode == Phaser.Keyboard.F) {
+						toggleFullscreen();
+					}
+
+					var bullet;
 
 					if (key.keyCode == Phaser.Keyboard.A) {
 						bullet = bullets.create(player.position.x - 30, player.position.y, 'bullet');
-						bullet.body.velocity.x += -30;
+						bullet.body.velocity.x += -300;
 					} else if (key.keyCode == Phaser.Keyboard.D) {
 						bullet = bullets.create(player.position.x + 30, player.position.y, 'bullet');
-						bullet.body.velocity.x += 30;
+						bullet.body.velocity.x += 300;
 					} else if (key.keyCode == Phaser.Keyboard.W) {
 						bullet = bullets.create(player.position.x, player.position.y - 30, 'bullet');
-						bullet.body.velocity.y += -30;
+						bullet.body.velocity.y += -300;
 					} else if (key.keyCode == Phaser.Keyboard.S) {
 						bullet = bullets.create(player.position.x, player.position.y + 30, 'bullet');
-						bullet.body.velocity.y += 30;
+						bullet.body.velocity.y += 300;
 					}
 
 					bullet.body.setCircle(10);
@@ -100,23 +109,16 @@
 				enemy.kill();
 				// console.log('collision')
 			});
-			//go full screen on click
-//			game.input.onDown.add(gofull, this);
-
-			cursors = game.input.keyboard.createCursorKeys();
 		}
 	}
 
-	function gofull() {
-
+	function toggleFullscreen() {
 		if (game.scale.isFullScreen) {
-			game.scale.startFullScreen(false);
+			game.scale.stopFullScreen();
 		} else {
-			game.scale.startFullScreen(false);
+			game.scale.startFullScreen();
 		}
-
 	}
-
 
 	function update() {
 
@@ -126,7 +128,6 @@
 		else if (cursors.right.isDown) {
 			player.body.velocity.x += 5;
 		}
-
 
 		if (cursors.up.isDown) {
 			player.body.velocity.y += -5;
