@@ -1,10 +1,10 @@
-(function() {
+(function () {
 	'use strict';
 
 	var _ = require('lodash');
 
 	var TILE_SIZE = 50,
-	    WALL_SIZE = TILE_SIZE * 1.75,
+		WALL_SIZE = TILE_SIZE * 1.75,
 		TILES_X = 13, TILES_Y = 7;
 
 	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
@@ -20,7 +20,7 @@
 	var player,
 		enemies,
 		enemy,
-	    cursors,
+		cursors,
 		keys = {},
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
@@ -59,7 +59,7 @@
 		// player.enableBody = true;
 		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function() {
+		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
@@ -76,8 +76,8 @@
 		bullets.enableBody = true;
 		bullets.physicsBodyType = Phaser.Physics.P2JS;
 
-		_.each(keys, function(key) {
-			key.onDown.add(function() {
+		_.each(keys, function (key) {
+			key.onDown.add(function () {
 
 				//fullscreen toggle
 				if (key.keyCode == Phaser.Keyboard.F) {
@@ -85,7 +85,7 @@
 				}
 			});
 
-			key.onHoldCallback = function() {
+			key.onHoldCallback = function () {
 				//direction fire
 				if (key.keyCode == Phaser.Keyboard.A) {
 					playerFire('left');
@@ -107,7 +107,7 @@
 			var enemy = enemies.create(Math.random() * 825, Math.random() * 525, 'enemy');
 			enemy.body.fixedRotation = true;
 			enemy.body.setCollisionGroup(enemiesCollisionGroup);
-			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function(body) {
+			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function (body) {
 				enemy.kill();
 				// console.log('collision')
 			});
