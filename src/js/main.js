@@ -1,19 +1,33 @@
-(function() {
+(function () {
 	'use strict';
 
 	var _ = require('lodash');
 
-	var game = new Phaser.Game(825, 525, Phaser.AUTO, '', {
+	var TILE_SIZE = 50,
+		WALL_SIZE = TILE_SIZE * 1.75,
+		TILES_X = 13, TILES_Y = 7;
+
+	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
 		preload: preload,
 		create: create,
 		update: update
 	});
-	var player;
-	var cursors;
-	var enemy;
-	var keys = {};
-	var Bullet = require('./bullet/Bullet.js');
-	//	var fire =
+
+	var playerCollisionGroup,
+		enemiesCollisionGroup,
+		bulletCollisionGroup;
+
+	var player,
+		enemies,
+		enemy,
+		cursors,
+		keys = {},
+//		Bullet = require('./bullet/Bullet.js'),
+		bullets,
+		bullet,
+		fireRate = 2,
+		fireDelay = 1000,
+		fireDisabled = false;
 
 	function preload() {
 
@@ -31,9 +45,9 @@
 		game.physics.p2.setImpactEvents(true);
 
 		//collision groups
-		var playerCollisionGroup = game.physics.p2.createCollisionGroup();
-		var enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
-		var bulletCollisionGroup = game.physics.p2.createCollisionGroup();
+		playerCollisionGroup = game.physics.p2.createCollisionGroup();
+		enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
+		bulletCollisionGroup = game.physics.p2.createCollisionGroup();
 
 		game.physics.p2.updateBoundsCollisionGroup();
 
@@ -45,7 +59,7 @@
 		// player.enableBody = true;
 		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function() {
+		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
@@ -58,58 +72,34 @@
 		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
 
-		var bullets = game.add.group();
+		bullets = game.add.group();
 		bullets.enableBody = true;
 		bullets.physicsBodyType = Phaser.Physics.P2JS;
 
-		_.each(keys, function(key) {
-			key.onDown.add(function() {
+		_.each(keys, function (key) {
+			key.onDown.add(function () {
 
 				//fullscreen toggle
 				if (key.keyCode == Phaser.Keyboard.F) {
 					toggleFullscreen();
 				}
-
-				var bullet,
-					bulletPosition = _.clone(player.position),
-					bulletVelocity = {
-						x: player.body.velocity.x,
-						y: player.body.velocity.y
-					};
-
-				if (key.keyCode == Phaser.Keyboard.A) {
-					bulletPosition.x -= 30;
-					bulletVelocity.x += -300;
-					player.body.velocity.x += 300;
-				} else if (key.keyCode == Phaser.Keyboard.D) {
-					bulletPosition.x += 30;
-					bulletVelocity.x += 300;
-					player.body.velocity.x += -300;
-				} else if (key.keyCode == Phaser.Keyboard.W) {
-					bulletPosition.y -= 30;
-					bulletVelocity.y += -300;
-					player.body.velocity.y += 300;
-				} else if (key.keyCode == Phaser.Keyboard.S) {
-					bulletPosition.y += 30;
-					bulletVelocity.y += 300;
-					player.body.velocity.y += -300;
-				}
-
-				bullet = bullets.create(bulletPosition.x, bulletPosition.y, 'bullet');
-				bullet.body.velocity.x = bulletVelocity.x;
-				bullet.body.velocity.y = bulletVelocity.y;
-				bullet.body.setCircle(10);
-				bullet.body.setCollisionGroup(bulletCollisionGroup);
-				bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
-					bul.sprite.kill();
-					en.sprite.kill();
-					console.log('collision')
-				}, this);
-
 			});
+
+			key.onHoldCallback = function () {
+				//direction fire
+				if (key.keyCode == Phaser.Keyboard.A) {
+					playerFire('left');
+				} else if (key.keyCode == Phaser.Keyboard.D) {
+					playerFire('right');
+				} else if (key.keyCode == Phaser.Keyboard.W) {
+					playerFire('top');
+				} else if (key.keyCode == Phaser.Keyboard.S) {
+					playerFire('bottom');
+				}
+			};
 		});
 
-		var enemies = game.add.group();
+		enemies = game.add.group();
 		enemies.enableBody = true;
 		enemies.physicsBodyType = Phaser.Physics.P2JS;
 
@@ -117,10 +107,65 @@
 			var enemy = enemies.create(Math.random() * 825, Math.random() * 525, 'enemy');
 			enemy.body.fixedRotation = true;
 			enemy.body.setCollisionGroup(enemiesCollisionGroup);
-			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function(body) {
+			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function (body) {
 				enemy.kill();
 				// console.log('collision')
 			});
+		}
+	}
+
+	function playerFire(direction) {
+
+		if (!fireDisabled) {
+			fireDisabled = true;
+
+			var bullet,
+				bulletPosition = _.clone(player.position),
+				bulletVelocity = {
+					x: player.body.velocity.x,
+					y: player.body.velocity.y
+				};
+
+			switch (direction) {
+				case ('left') :
+					bulletPosition.x -= 30;
+					bulletVelocity.x += -300;
+					player.body.velocity.x += 200;
+					break;
+				case ('right') :
+					bulletPosition.x += 30;
+					bulletVelocity.x += 300;
+					player.body.velocity.x += -200;
+					break;
+				case ('top') :
+					bulletPosition.y -= 30;
+					bulletVelocity.y += -300;
+					player.body.velocity.y += 200;
+					break;
+				case ('bottom') :
+					bulletPosition.y += 30;
+					bulletVelocity.y += 300;
+					player.body.velocity.y += -200;
+					break;
+				default:
+					console.log('No playerFire direction');
+					break;
+			}
+
+			bullet = bullets.create(bulletPosition.x, bulletPosition.y, 'bullet');
+			bullet.body.velocity.x = bulletVelocity.x;
+			bullet.body.velocity.y = bulletVelocity.y;
+			bullet.body.setCircle(10);
+			bullet.body.setCollisionGroup(bulletCollisionGroup);
+			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
+				bul.sprite.kill();
+				en.sprite.kill();
+				console.log('collision')
+			}, this);
+
+			var fireRateTimeout = setTimeout(function () {
+				fireDisabled = false;
+			}, fireDelay / fireRate);
 		}
 	}
 
