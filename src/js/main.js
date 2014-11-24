@@ -3,7 +3,7 @@
 
 	var _ = require('lodash');
 
-	var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
+	var game = new Phaser.Game(825, 525, Phaser.AUTO, '', {
 		preload: preload,
 		create: create,
 		update: update
@@ -17,9 +17,9 @@
 
 	function preload() {
 
-		game.load.image('player', 'assets/Player.png');
-		game.load.image('enemy', 'assets/Enemy.png');
-		game.load.image('bullet', 'assets/Bullet.png');
+		game.load.image('player', 'assets/sprites/isaac.png');
+		game.load.image('enemy', 'assets/sprites/enemy.png');
+		game.load.image('bullet', 'assets/sprites/bullet-red.png');
 	}
 
 	function create() {
@@ -80,15 +80,19 @@
 				if (key.keyCode == Phaser.Keyboard.A) {
 					bulletPosition.x -= 30;
 					bulletVelocity.x += -300;
+					player.body.velocity.x += 300;
 				} else if (key.keyCode == Phaser.Keyboard.D) {
 					bulletPosition.x += 30;
 					bulletVelocity.x += 300;
+					player.body.velocity.x += -300;
 				} else if (key.keyCode == Phaser.Keyboard.W) {
 					bulletPosition.y -= 30;
 					bulletVelocity.y += -300;
+					player.body.velocity.y += 300;
 				} else if (key.keyCode == Phaser.Keyboard.S) {
-					bulletPosition.y += 30
+					bulletPosition.y += 30;
 					bulletVelocity.y += 300;
+					player.body.velocity.y += -300;
 				}
 
 				bullet = bullets.create(bulletPosition.x, bulletPosition.y, 'bullet');
@@ -110,7 +114,7 @@
 		enemies.physicsBodyType = Phaser.Physics.P2JS;
 
 		for (var i = 0; i < 20; i++) {
-			var enemy = enemies.create(Math.random() * 800, Math.random() * 600, 'enemy');
+			var enemy = enemies.create(Math.random() * 825, Math.random() * 525, 'enemy');
 			enemy.body.fixedRotation = true;
 			enemy.body.setCollisionGroup(enemiesCollisionGroup);
 			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function(body) {
