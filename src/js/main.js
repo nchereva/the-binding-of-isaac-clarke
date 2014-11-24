@@ -25,8 +25,9 @@
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bullet,
-		fireRate = 1,
-		fireDelay = 1000;
+		fireRate = 2,
+		fireDelay = 1000,
+		fireDisabled = false;
 
 	function preload() {
 
@@ -114,49 +115,58 @@
 	}
 
 	function playerFire(direction) {
-		var bullet,
-			bulletPosition = _.clone(player.position),
-			bulletVelocity = {
-				x: player.body.velocity.x,
-				y: player.body.velocity.y
-			};
 
-		switch (direction) {
-			case ('left') :
-				bulletPosition.x -= 30;
-				bulletVelocity.x += -300;
-				player.body.velocity.x += 200;
-				break;
-			case ('right') :
-				bulletPosition.x += 30;
-				bulletVelocity.x += 300;
-				player.body.velocity.x += -200;
-				break;
-			case ('top') :
-				bulletPosition.y -= 30;
-				bulletVelocity.y += -300;
-				player.body.velocity.y += 200;
-				break;
-			case ('bottom') :
-				bulletPosition.y += 30;
-				bulletVelocity.y += 300;
-				player.body.velocity.y += -200;
-				break;
-			default:
-				console.log('No playerFire direction');
-				break;
+		if (!fireDisabled) {
+			fireDisabled = true;
+
+			var bullet,
+				bulletPosition = _.clone(player.position),
+				bulletVelocity = {
+					x: player.body.velocity.x,
+					y: player.body.velocity.y
+				};
+
+			switch (direction) {
+				case ('left') :
+					bulletPosition.x -= 30;
+					bulletVelocity.x += -300;
+					player.body.velocity.x += 200;
+					break;
+				case ('right') :
+					bulletPosition.x += 30;
+					bulletVelocity.x += 300;
+					player.body.velocity.x += -200;
+					break;
+				case ('top') :
+					bulletPosition.y -= 30;
+					bulletVelocity.y += -300;
+					player.body.velocity.y += 200;
+					break;
+				case ('bottom') :
+					bulletPosition.y += 30;
+					bulletVelocity.y += 300;
+					player.body.velocity.y += -200;
+					break;
+				default:
+					console.log('No playerFire direction');
+					break;
+			}
+
+			bullet = bullets.create(bulletPosition.x, bulletPosition.y, 'bullet');
+			bullet.body.velocity.x = bulletVelocity.x;
+			bullet.body.velocity.y = bulletVelocity.y;
+			bullet.body.setCircle(10);
+			bullet.body.setCollisionGroup(bulletCollisionGroup);
+			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
+				bul.sprite.kill();
+				en.sprite.kill();
+				console.log('collision')
+			}, this);
+
+			setTimeout(function () {
+				fireDisabled = false;
+			}, fireDelay / fireRate);
 		}
-
-		bullet = bullets.create(bulletPosition.x, bulletPosition.y, 'bullet');
-		bullet.body.velocity.x = bulletVelocity.x;
-		bullet.body.velocity.y = bulletVelocity.y;
-		bullet.body.setCircle(10);
-		bullet.body.setCollisionGroup(bulletCollisionGroup);
-		bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
-			bul.sprite.kill();
-			en.sprite.kill();
-			console.log('collision')
-		}, this);
 	}
 
 	function toggleFullscreen() {
