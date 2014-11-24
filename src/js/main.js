@@ -163,7 +163,7 @@
 				console.log('collision')
 			}, this);
 
-			setTimeout(function () {
+			var fireRateTimeout = setTimeout(function () {
 				fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
