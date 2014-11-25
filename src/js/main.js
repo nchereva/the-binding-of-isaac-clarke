@@ -17,12 +17,15 @@
 
 	var playerCollisionGroup,
 		enemiesCollisionGroup,
-		bulletCollisionGroup;
+		bulletsCollisionGroup,
+		stonesCollisionGroup;
 
 	var player,
 		enemies,
 		enemy,
 		enemyAis = [],
+		stones,
+		stone,
 		cursors,
 		keys = {},
 	//		Bullet = require('./bullet/Bullet.js'),
@@ -37,6 +40,9 @@
 		game.load.image('player', 'assets/sprites/isaac.png');
 		game.load.image('enemy', 'assets/sprites/enemy.png');
 		game.load.image('bullet', 'assets/sprites/bullet-red.png');
+		game.load.image('stone', 'assets/sprites/stone_1.png');
+		game.load.image('crate', 'assets/sprites/crate_1.png');
+
 	}
 
 	function create() {
@@ -50,7 +56,9 @@
 		//collision groups
 		playerCollisionGroup = game.physics.p2.createCollisionGroup();
 		enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
-		bulletCollisionGroup = game.physics.p2.createCollisionGroup();
+		bulletsCollisionGroup = game.physics.p2.createCollisionGroup();
+		stonesCollisionGroup = game.physics.p2.createCollisionGroup();
+
 
 		game.physics.p2.updateBoundsCollisionGroup();
 
@@ -62,7 +70,7 @@
 		// player.enableBody = true;
 		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
+		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup], function () {
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
@@ -106,8 +114,13 @@
 		enemies.enableBody = true;
 		enemies.physicsBodyType = Phaser.Physics.P2JS;
 
-		for (var i = 0; i < 20; i++) {
+		stones = game.add.group();
+		stones.enableBody = true;
+		stones.physicsBodyType = Phaser.Physics.P2JS;
+
+		for (var i = 0; i < 10; i++) {
 			createEnemy(enemies);
+			createStone(stones)
 		}
 	}
 
@@ -153,11 +166,18 @@
 			bullet.body.velocity.x = bulletVelocity.x;
 			bullet.body.velocity.y = bulletVelocity.y;
 			bullet.body.setCircle(10);
-			bullet.body.setCollisionGroup(bulletCollisionGroup);
+			bullet.body.setCollisionGroup(bulletsCollisionGroup);
 			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
 				if (bul.sprite.alive && en.sprite.alive) {
 					bul.sprite.kill();
 					en.sprite.kill();
+				}
+				console.log('collision')
+			}, this);
+
+			bullet.body.collides([stonesCollisionGroup], function (bul, en) {
+				if (bul.sprite.alive) {
+					bul.sprite.kill();
 				}
 				console.log('collision')
 			}, this);
@@ -194,11 +214,19 @@
 		})
 	}
 
+	function createStone(group) {
+		var stone = group.create(Math.random() * 775, Math.random() * 475, 'stone');
+		stone.body.fixedRotation = true;
+		stone.body.immovable = true;
+		stone.body.setCollisionGroup(stonesCollisionGroup);
+//		stone.body.collides([bulletsCollisionGroup]);
+	}
+
 	function createEnemy(group) {
-		var enemy = group.create(Math.random() * 825, Math.random() * 525, 'enemy');
+		var enemy = group.create(Math.random() * 775, Math.random() * 475, 'enemy');
 		enemy.body.fixedRotation = true;
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletCollisionGroup]);
+		enemy.body.collides([bulletsCollisionGroup]);
 		enemyAis.push(new ai(enemy, player, 100, true));
 	}
 
