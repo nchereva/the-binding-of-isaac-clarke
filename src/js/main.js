@@ -70,7 +70,7 @@
 		// player.enableBody = true;
 		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup], function () {
+		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function () {
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
@@ -216,17 +216,18 @@
 
 	function createStone(group) {
 		var stone = group.create(Math.random() * 775, Math.random() * 475, 'stone');
-		stone.body.fixedRotation = true;
-		stone.body.immovable = true;
 		stone.body.setCollisionGroup(stonesCollisionGroup);
-//		stone.body.collides([bulletsCollisionGroup]);
+		stone.body.collides([stonesCollisionGroup, bulletsCollisionGroup, playerCollisionGroup, enemiesCollisionGroup]);
+		stone.body.fixedRotation = true;
+		//stone.body.STATIC;
+		stone.body.static = true;
 	}
 
 	function createEnemy(group) {
 		var enemy = group.create(Math.random() * 775, Math.random() * 475, 'enemy');
 		enemy.body.fixedRotation = true;
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletsCollisionGroup]);
+		enemy.body.collides([bulletsCollisionGroup, stonesCollisionGroup, enemiesCollisionGroup, playerCollisionGroup]);
 		enemyAis.push(new ai(enemy, player, 100, true));
 	}
 
