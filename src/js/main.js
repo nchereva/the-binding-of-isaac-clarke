@@ -1,4 +1,4 @@
-(function() {
+(function () {
 	'use strict';
 
 	var _ = require('lodash');
@@ -25,7 +25,7 @@
 		enemyAis = [],
 		cursors,
 		keys = {},
-		//		Bullet = require('./bullet/Bullet.js'),
+	//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bullet,
 		fireRate = 2,
@@ -62,7 +62,7 @@
 		// player.enableBody = true;
 		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function() {
+		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
@@ -79,8 +79,8 @@
 		bullets.enableBody = true;
 		bullets.physicsBodyType = Phaser.Physics.P2JS;
 
-		_.each(keys, function(key) {
-			key.onDown.add(function() {
+		_.each(keys, function (key) {
+			key.onDown.add(function () {
 
 				//fullscreen toggle
 				if (key.keyCode == Phaser.Keyboard.F) {
@@ -88,7 +88,7 @@
 				}
 			});
 
-			key.onHoldCallback = function() {
+			key.onHoldCallback = function () {
 				//direction fire
 				if (key.keyCode == Phaser.Keyboard.A) {
 					playerFire('left');
@@ -154,7 +154,7 @@
 			bullet.body.velocity.y = bulletVelocity.y;
 			bullet.body.setCircle(10);
 			bullet.body.setCollisionGroup(bulletCollisionGroup);
-			bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
+			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
 				if (bul.sprite.alive && en.sprite.alive) {
 					bul.sprite.kill();
 					en.sprite.kill();
@@ -162,7 +162,7 @@
 				console.log('collision')
 			}, this);
 
-			var fireRateTimeout = setTimeout(function() {
+			var fireRateTimeout = setTimeout(function () {
 				fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
@@ -189,7 +189,7 @@
 		} else if (cursors.down.isDown) {
 			player.body.velocity.y += 5;
 		}
-		_.each(enemyAis, function(ai) {
+		_.each(enemyAis, function (ai) {
 			ai.move();
 		})
 	}
