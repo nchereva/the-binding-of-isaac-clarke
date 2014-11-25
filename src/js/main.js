@@ -66,7 +66,6 @@
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
-		player.events.onKilled.add(function() {debugger})
 
 		cursors = game.input.keyboard.createCursorKeys();
 
@@ -156,8 +155,10 @@
 			bullet.body.setCircle(10);
 			bullet.body.setCollisionGroup(bulletCollisionGroup);
 			bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
-				bul.sprite.kill();
-				en.sprite.kill();
+				if (bul.sprite.alive && en.sprite.alive) {
+					bul.sprite.kill();
+					en.sprite.kill();
+				}
 				console.log('collision')
 			}, this);
 
@@ -197,10 +198,7 @@
 		var enemy = group.create(Math.random() * 825, Math.random() * 525, 'enemy');
 		enemy.body.fixedRotation = true;
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletCollisionGroup], function(body) {
-			enemy.kill();
-			// console.log('collision')
-		});
+		enemy.body.collides([bulletCollisionGroup]);
 		enemyAis.push(new ai(enemy, player, 100, true));
 	}
 
