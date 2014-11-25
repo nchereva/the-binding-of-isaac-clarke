@@ -1,11 +1,13 @@
-(function () {
+(function() {
 	'use strict';
 
 	var _ = require('lodash');
+	var ai = require('./ai/movement');
 
 	var TILE_SIZE = 50,
 		WALL_SIZE = TILE_SIZE * 1.75,
-		TILES_X = 13, TILES_Y = 7;
+		TILES_X = 13,
+		TILES_Y = 7;
 
 	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
 		preload: preload,
@@ -20,9 +22,10 @@
 	var player,
 		enemies,
 		enemy,
+		enemyAis = [],
 		cursors,
 		keys = {},
-//		Bullet = require('./bullet/Bullet.js'),
+		//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bullet,
 		fireRate = 2,
@@ -59,7 +62,7 @@
 		// player.enableBody = true;
 		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function () {
+		player.body.collides([enemiesCollisionGroup, bulletCollisionGroup], function() {
 			console.log('collision')
 		}, this);
 		player.body.fixedRotation = true;
@@ -76,8 +79,8 @@
 		bullets.enableBody = true;
 		bullets.physicsBodyType = Phaser.Physics.P2JS;
 
-		_.each(keys, function (key) {
-			key.onDown.add(function () {
+		_.each(keys, function(key) {
+			key.onDown.add(function() {
 
 				//fullscreen toggle
 				if (key.keyCode == Phaser.Keyboard.F) {
@@ -85,7 +88,7 @@
 				}
 			});
 
-			key.onHoldCallback = function () {
+			key.onHoldCallback = function() {
 				//direction fire
 				if (key.keyCode == Phaser.Keyboard.A) {
 					playerFire('left');
@@ -104,13 +107,7 @@
 		enemies.physicsBodyType = Phaser.Physics.P2JS;
 
 		for (var i = 0; i < 20; i++) {
-			var enemy = enemies.create(Math.random() * 825, Math.random() * 525, 'enemy');
-			enemy.body.fixedRotation = true;
-			enemy.body.setCollisionGroup(enemiesCollisionGroup);
-			enemy.body.collides([bulletCollisionGroup, playerCollisionGroup, enemiesCollisionGroup], function (body) {
-				enemy.kill();
-				// console.log('collision')
-			});
+			createEnemy(enemies);
 		}
 	}
 
@@ -127,22 +124,22 @@
 				};
 
 			switch (direction) {
-				case ('left') :
+				case ('left'):
 					bulletPosition.x -= 30;
 					bulletVelocity.x += -300;
 					player.body.velocity.x += 200;
 					break;
-				case ('right') :
+				case ('right'):
 					bulletPosition.x += 30;
 					bulletVelocity.x += 300;
 					player.body.velocity.x += -200;
 					break;
-				case ('top') :
+				case ('top'):
 					bulletPosition.y -= 30;
 					bulletVelocity.y += -300;
 					player.body.velocity.y += 200;
 					break;
-				case ('bottom') :
+				case ('bottom'):
 					bulletPosition.y += 30;
 					bulletVelocity.y += 300;
 					player.body.velocity.y += -200;
@@ -157,13 +154,15 @@
 			bullet.body.velocity.y = bulletVelocity.y;
 			bullet.body.setCircle(10);
 			bullet.body.setCollisionGroup(bulletCollisionGroup);
-			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
-				bul.sprite.kill();
-				en.sprite.kill();
+			bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
+				if (bul.sprite.alive && en.sprite.alive) {
+					bul.sprite.kill();
+					en.sprite.kill();
+				}
 				console.log('collision')
 			}, this);
 
-			var fireRateTimeout = setTimeout(function () {
+			var fireRateTimeout = setTimeout(function() {
 				fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
@@ -190,6 +189,17 @@
 		} else if (cursors.down.isDown) {
 			player.body.velocity.y += 5;
 		}
+		_.each(enemyAis, function(ai) {
+			ai.move();
+		})
+	}
+
+	function createEnemy(group) {
+		var enemy = group.create(Math.random() * 825, Math.random() * 525, 'enemy');
+		enemy.body.fixedRotation = true;
+		enemy.body.setCollisionGroup(enemiesCollisionGroup);
+		enemy.body.collides([bulletCollisionGroup]);
+		enemyAis.push(new ai(enemy, player, 100, true));
 	}
 
 })();
