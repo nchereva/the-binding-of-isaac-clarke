@@ -2,7 +2,8 @@
 	'use strict';
 
 	var _ = require('lodash');
-	var ai = require('./ai/movement');
+	var movementAi = require('./ai/movement');
+	var shootAi = require('./ai/shooting');
 
 	var TILE_SIZE = 50,
 		WALL_SIZE = TILE_SIZE * 1.75,
@@ -106,7 +107,7 @@
 		enemies.enableBody = true;
 		enemies.physicsBodyType = Phaser.Physics.P2JS;
 
-		for (var i = 0; i < 20; i++) {
+		for (var i = 0; i < 5; i++) {
 			createEnemy(enemies);
 		}
 	}
@@ -190,16 +191,26 @@
 			player.body.velocity.y += 5;
 		}
 		_.each(enemyAis, function(ai) {
-			ai.move();
+			if (ai.move) ai.move();
+			if (ai.shoot) ai.shoot();
 		})
 	}
 
 	function createEnemy(group) {
 		var enemy = group.create(Math.random() * 825, Math.random() * 525, 'enemy');
+		enemy._id = _.uniqueId('enemy_')
 		enemy.body.fixedRotation = true;
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletCollisionGroup]);
-		enemyAis.push(new ai(enemy, player, 100, true));
+		enemy.body.collides([bulletCollisionGroup, enemiesCollisionGroup, playerCollisionGroup]);
+		enemyAis.push(new shootAi({
+			object: enemy,
+			target: player,
+			bulletsGroup: bullets,
+			bulletCollisionGroup: bulletCollisionGroup,
+			targetCollisionGroup: playerCollisionGroup,
+			difficulty: 2
+		}));
+		enemyAis.push(new movementAi(enemy, player, 50));
 	}
 
 })();

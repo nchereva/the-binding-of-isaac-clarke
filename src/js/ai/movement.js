@@ -1,8 +1,5 @@
 (function() {
-	var sqrt = Math.sqrt,
-		sqr = function(x) {
-			return Math.pow(x, 2);
-		};
+	//TODO rewrite using sigle object pattern
 	module.exports = function(object, target, speed, immediate) {
 		this.object = object;
 		this.speed = speed || 10;
