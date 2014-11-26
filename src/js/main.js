@@ -7,7 +7,8 @@
 	var TILE_SIZE = 50,
 		WALL_SIZE = TILE_SIZE * 1.75,
 		TILES_X = 13,
-		TILES_Y = 7;
+		TILES_Y = 7,
+		GRID_START = WALL_SIZE + TILE_SIZE / 2;
 
 	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
 		preload: preload,
@@ -27,6 +28,7 @@
 		stones,
 		stone,
 		cursors,
+		levelGrid,
 		keys = {},
 	//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
@@ -46,7 +48,7 @@
 	}
 
 	function create() {
-
+		createLevelGrid();
 		//basic game settings
 		game.stage.backgroundColor = '#33cc33';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -118,10 +120,12 @@
 		stones.enableBody = true;
 		stones.physicsBodyType = Phaser.Physics.P2JS;
 
-		for (var i = 0; i < 10; i++) {
-			createEnemy(enemies);
-			createStone(stones)
-		}
+		createStone(stones);
+
+//		for (var i = 0; i < 10; i++) {
+//			createEnemy(enemies);
+//			createStone(stones)
+//		}
 	}
 
 	function playerFire(direction) {
@@ -215,7 +219,8 @@
 	}
 
 	function createStone(group) {
-		var stone = group.create(Math.random() * 775, Math.random() * 475, 'stone');
+//		var stone = group.create(Math.random() * 775, Math.random() * 475, 'stone');
+		var stone = group.create(0, 0, 'stone');
 		stone.body.setCollisionGroup(stonesCollisionGroup);
 		stone.body.collides([stonesCollisionGroup, bulletsCollisionGroup, playerCollisionGroup, enemiesCollisionGroup]);
 		stone.body.fixedRotation = true;
@@ -229,6 +234,18 @@
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
 		enemy.body.collides([bulletsCollisionGroup, stonesCollisionGroup, enemiesCollisionGroup, playerCollisionGroup]);
 		enemyAis.push(new ai(enemy, player, 100, true));
+	}
+
+	function createLevelGrid() {
+		var levelGrid = [];
+		for (var i = 0; i < TILES_X - 1; i++) {
+			for (var j = 0; j < TILES_Y - 1; j++) {
+				levelGrid[i][j].push(GRID_START + i * TILE_SIZE);
+				levelGrid[i][j].push(GRID_START + j * TILE_SIZE);
+			}
+		}
+		console.log('grid created');
+		console.log(levelGrid);
 	}
 
 })();
