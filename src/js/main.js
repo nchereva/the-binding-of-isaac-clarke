@@ -29,7 +29,7 @@
 		stone,
 		cursors,
 		levelGrid,
-		keys = {},
+		keys = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
 	//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bullet,
@@ -48,7 +48,9 @@
 	}
 
 	function create() {
+
 		createLevelGrid();
+
 		//basic game settings
 		game.stage.backgroundColor = '#33cc33';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
@@ -61,19 +63,15 @@
 		bulletsCollisionGroup = game.physics.p2.createCollisionGroup();
 		stonesCollisionGroup = game.physics.p2.createCollisionGroup();
 
-
 		game.physics.p2.updateBoundsCollisionGroup();
 
 		//creating player
-		player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+		player = game.add.sprite(game.world.centerX, game.world.centerY, 'player'); // should be added to group and spawned on grid
 		player.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
-
-		// player.enableBody = true;
-		//		player.body.setCircle(35);
 		player.body.setCollisionGroup(playerCollisionGroup);
 		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function () {
-			console.log('collision')
+			console.log('player collision');
 		}, this);
 		player.body.fixedRotation = true;
 
@@ -84,10 +82,6 @@
 		keys['s'] = game.input.keyboard.addKey(Phaser.Keyboard.S);
 		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
-
-		bullets = game.add.group();
-		bullets.enableBody = true;
-		bullets.physicsBodyType = Phaser.Physics.P2JS;
 
 		_.each(keys, function (key) {
 			key.onDown.add(function () {
@@ -112,6 +106,11 @@
 			};
 		});
 
+		// Should those be created by function?
+		bullets = game.add.group();
+		bullets.enableBody = true;
+		bullets.physicsBodyType = Phaser.Physics.P2JS;
+
 		enemies = game.add.group();
 		enemies.enableBody = true;
 		enemies.physicsBodyType = Phaser.Physics.P2JS;
@@ -120,12 +119,16 @@
 		stones.enableBody = true;
 		stones.physicsBodyType = Phaser.Physics.P2JS;
 
-		createStone(stones);
+		// Ima spaunin mah spraets
+		createStone(stones, 0, 0);
+		createStone(stones, 0, 1);
+		createStone(stones, 1, 0);
+		createStone(stones, 11, 6);
+		createStone(stones, 12, 6);
+		createStone(stones, 12, 5);
 
-//		for (var i = 0; i < 10; i++) {
-//			createEnemy(enemies);
-//			createStone(stones)
-//		}
+		createEnemy(enemies, 1, 1);
+		createEnemy(enemies, 11, 5);
 	}
 
 	function playerFire(direction) {
@@ -218,34 +221,36 @@
 		})
 	}
 
-	function createStone(group) {
-//		var stone = group.create(Math.random() * 775, Math.random() * 475, 'stone');
-		var stone = group.create(0, 0, 'stone');
+	function createStone(group, column, row)  {
+		var stone = createAtPoint(group, column, row, 'stone');
 		stone.body.setCollisionGroup(stonesCollisionGroup);
-		stone.body.collides([stonesCollisionGroup, bulletsCollisionGroup, playerCollisionGroup, enemiesCollisionGroup]);
+		stone.body.collides([playerCollisionGroup, enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup]);
 		stone.body.fixedRotation = true;
-		//stone.body.STATIC;
 		stone.body.static = true;
 	}
 
-	function createEnemy(group) {
-		var enemy = group.create(Math.random() * 775, Math.random() * 475, 'enemy');
-		enemy.body.fixedRotation = true;
+	function createEnemy(group, column, row) {
+		var enemy = createAtPoint(group, column, row, 'enemy');
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletsCollisionGroup, stonesCollisionGroup, enemiesCollisionGroup, playerCollisionGroup]);
+		enemy.body.collides([playerCollisionGroup, enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup]);
 		enemyAis.push(new ai(enemy, player, 100, true));
+		enemy.body.fixedRotation = true;
 	}
 
 	function createLevelGrid() {
-		var levelGrid = [];
-		for (var i = 0; i < TILES_X - 1; i++) {
-			for (var j = 0; j < TILES_Y - 1; j++) {
-				levelGrid[i][j].push(GRID_START + i * TILE_SIZE);
-				levelGrid[i][j].push(GRID_START + j * TILE_SIZE);
+		levelGrid = [];
+		for (var i = 0; i < TILES_X; i++) {
+			levelGrid[i] = [];
+			for (var j = 0; j < TILES_Y; j++) {
+				levelGrid[i][j] = [GRID_START + i * TILE_SIZE, GRID_START + j * TILE_SIZE];
 			}
 		}
-		console.log('grid created');
-		console.log(levelGrid);
+	}
+
+	function createAtPoint( group, column, row, sprite ) {
+		var spawn_x = levelGrid[column][row][0];
+		var spawn_y = levelGrid[column][row][1];
+		return group.create( spawn_x, spawn_y, sprite);
 	}
 
 })();
