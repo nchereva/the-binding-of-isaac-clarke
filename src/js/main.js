@@ -1,4 +1,4 @@
-(function () {
+(function() {
 	'use strict';
 
 	var _ = require('lodash');
@@ -9,6 +9,29 @@
 		TILES_X = 13,
 		TILES_Y = 7,
 		GRID_START = WALL_SIZE + TILE_SIZE / 2;
+
+	var stoneMask = [
+		[1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0],
+		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+	]
+
+	function createLevel(mask, group) {
+		if (!_.isArray(mask)) {
+			return;
+		}
+
+		_.forIn(mask, function(row, y) {
+			_.forIn(row, function(item, x) {
+				if(!item) return;
+				createStone(group, x, y);
+			})
+		})
+	}
 
 	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
 		preload: preload,
@@ -30,7 +53,7 @@
 		cursors,
 		levelGrid,
 		keys = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
-	//		Bullet = require('./bullet/Bullet.js'),
+		//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bullet,
 		fireRate = 2,
@@ -70,7 +93,7 @@
 		player.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function () {
+		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function() {
 			console.log('player collision');
 		}, this);
 		player.body.fixedRotation = true;
@@ -83,8 +106,8 @@
 		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
 
-		_.each(keys, function (key) {
-			key.onDown.add(function () {
+		_.each(keys, function(key) {
+			key.onDown.add(function() {
 
 				//fullscreen toggle
 				if (key.keyCode == Phaser.Keyboard.F) {
@@ -92,7 +115,7 @@
 				}
 			});
 
-			key.onHoldCallback = function () {
+			key.onHoldCallback = function() {
 				//direction fire
 				if (key.keyCode == Phaser.Keyboard.A) {
 					playerFire('left');
@@ -120,12 +143,14 @@
 		stones.physicsBodyType = Phaser.Physics.P2JS;
 
 		// Ima spaunin mah spraets
-		createStone(stones, 0, 0);
-		createStone(stones, 0, 1);
-		createStone(stones, 1, 0);
-		createStone(stones, 11, 6);
-		createStone(stones, 12, 6);
-		createStone(stones, 12, 5);
+		// createStone(stones, 0, 0);
+		// createStone(stones, 0, 1);
+		// createStone(stones, 1, 0);
+		// createStone(stones, 11, 6);
+		// createStone(stones, 12, 6);
+		// createStone(stones, 12, 5);
+
+		createLevel(stoneMask, stones);
 
 		createEnemy(enemies, 1, 1);
 		createEnemy(enemies, 11, 5);
@@ -174,7 +199,7 @@
 			bullet.body.velocity.y = bulletVelocity.y;
 			bullet.body.setCircle(10);
 			bullet.body.setCollisionGroup(bulletsCollisionGroup);
-			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
+			bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
 				if (bul.sprite.alive && en.sprite.alive) {
 					bul.sprite.kill();
 					en.sprite.kill();
@@ -182,14 +207,14 @@
 				console.log('collision')
 			}, this);
 
-			bullet.body.collides([stonesCollisionGroup], function (bul, en) {
+			bullet.body.collides([stonesCollisionGroup], function(bul, en) {
 				if (bul.sprite.alive) {
 					bul.sprite.kill();
 				}
 				console.log('collision')
 			}, this);
 
-			var fireRateTimeout = setTimeout(function () {
+			var fireRateTimeout = setTimeout(function() {
 				fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
@@ -216,12 +241,12 @@
 		} else if (cursors.down.isDown) {
 			player.body.velocity.y += 5;
 		}
-		_.each(enemyAis, function (ai) {
+		_.each(enemyAis, function(ai) {
 			ai.move();
 		})
 	}
 
-	function createStone(group, column, row)  {
+	function createStone(group, column, row) {
 		var stone = createAtPoint(group, column, row, 'stone');
 		stone.body.setCollisionGroup(stonesCollisionGroup);
 		stone.body.collides([playerCollisionGroup, enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup]);
@@ -247,10 +272,10 @@
 		}
 	}
 
-	function createAtPoint( group, column, row, sprite ) {
+	function createAtPoint(group, column, row, sprite) {
 		var spawn_x = levelGrid[column][row][0];
 		var spawn_y = levelGrid[column][row][1];
-		return group.create( spawn_x, spawn_y, sprite);
+		return group.create(spawn_x, spawn_y, sprite);
 	}
 
 })();
