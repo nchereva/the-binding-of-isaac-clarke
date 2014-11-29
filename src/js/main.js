@@ -11,27 +11,14 @@
 		GRID_START = WALL_SIZE + TILE_SIZE / 2;
 
 	var stoneMask = [
-		[1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 0],
 		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
 		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0],
 		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
 		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
-	]
-
-	function createLevel(mask, group) {
-		if (!_.isArray(mask)) {
-			return;
-		}
-
-		_.forIn(mask, function(row, y) {
-			_.forIn(row, function(item, x) {
-				if(!item) return;
-				createStone(group, x, y);
-			})
-		})
-	}
+		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
+		[1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0]
+	];
 
 	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
 		preload: preload,
@@ -142,14 +129,6 @@
 		stones.enableBody = true;
 		stones.physicsBodyType = Phaser.Physics.P2JS;
 
-		// Ima spaunin mah spraets
-		// createStone(stones, 0, 0);
-		// createStone(stones, 0, 1);
-		// createStone(stones, 1, 0);
-		// createStone(stones, 11, 6);
-		// createStone(stones, 12, 6);
-		// createStone(stones, 12, 5);
-
 		createLevel(stoneMask, stones);
 
 		createEnemy(enemies, 1, 1);
@@ -243,6 +222,19 @@
 		}
 		_.each(enemyAis, function(ai) {
 			ai.move();
+		})
+	}
+
+	function createLevel(mask, group) {
+		if (!_.isArray(mask)) {
+			return;
+		}
+
+		_.forIn(mask, function(row, y) {
+			_.forIn(row, function(item, x) {
+				if(!item) return;
+				createStone(group, x, y);
+			})
 		})
 	}
 
