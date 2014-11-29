@@ -100,7 +100,7 @@
 				bullet.body.velocity.y = bulletVelocity.y;
 				bullet.body.setCircle(10);
 				bullet.body.setCollisionGroup(this.bulletCollisionGroup);
-				bullet.body.collides([this.targetCollisionGroup], function(bul, en) {
+				bullet.body.collides(this.targetCollisionGroup, function(bul, en) {
 					if (bul.sprite.alive && en.sprite.alive) {
 						bul.sprite.kill();
 					}

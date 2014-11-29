@@ -1,4 +1,4 @@
-(function() {
+(function () {
 	'use strict';
 
 	var _ = require('lodash');
@@ -41,7 +41,7 @@
 		cursors,
 		levelGrid,
 		keys = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
-		//		Bullet = require('./bullet/Bullet.js'),
+	//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bullet,
 		fireRate = 2,
@@ -81,7 +81,7 @@
 		player.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function() {
+		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function () {
 			console.log('player collision');
 		}, this);
 		player.body.fixedRotation = true;
@@ -94,8 +94,8 @@
 		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
 
-		_.each(keys, function(key) {
-			key.onDown.add(function() {
+		_.each(keys, function (key) {
+			key.onDown.add(function () {
 
 				//fullscreen toggle
 				if (key.keyCode == Phaser.Keyboard.F) {
@@ -103,7 +103,7 @@
 				}
 			});
 
-			key.onHoldCallback = function() {
+			key.onHoldCallback = function () {
 				//direction fire
 				if (key.keyCode == Phaser.Keyboard.A) {
 					playerFire('left');
@@ -179,7 +179,7 @@
 			bullet.body.velocity.y = bulletVelocity.y;
 			bullet.body.setCircle(10);
 			bullet.body.setCollisionGroup(bulletsCollisionGroup);
-			bullet.body.collides([enemiesCollisionGroup], function(bul, en) {
+			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
 				if (bul.sprite.alive && en.sprite.alive) {
 					bul.sprite.kill();
 					en.sprite.kill();
@@ -187,14 +187,14 @@
 				console.log('collision')
 			}, this);
 
-			bullet.body.collides([stonesCollisionGroup], function(bul, en) {
+			bullet.body.collides([stonesCollisionGroup], function (bul, en) {
 				if (bul.sprite.alive) {
 					bul.sprite.kill();
 				}
 				console.log('collision')
 			}, this);
 
-			var fireRateTimeout = setTimeout(function() {
+			var fireRateTimeout = setTimeout(function () {
 				fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
@@ -221,7 +221,7 @@
 		} else if (cursors.down.isDown) {
 			player.body.velocity.y += 5;
 		}
-		_.each(enemyAis, function(ai) {
+		_.each(enemyAis, function (ai) {
 			if (ai.move) ai.move();
 			if (ai.shoot) ai.shoot();
 		})
@@ -232,9 +232,9 @@
 			return;
 		}
 
-		_.forIn(mask, function(row, y) {
-			_.forIn(row, function(item, x) {
-				if(!item) return;
+		_.forIn(mask, function (row, y) {
+			_.forIn(row, function (item, x) {
+				if (!item) return;
 				createStone(group, x, y);
 			})
 		})
@@ -248,18 +248,18 @@
 		stone.body.static = true;
 	}
 
-	function createEnemy(group) {
+	function createEnemy(group, column, row) {
 		var enemy = createAtPoint(group, column, row, 'enemy');
 		enemy._id = _.uniqueId('enemy_')
 		enemy.body.fixedRotation = true;
 		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletCollisionGroup, enemiesCollisionGroup, playerCollisionGroup]);
+		enemy.body.collides([bulletsCollisionGroup, enemiesCollisionGroup, playerCollisionGroup, stonesCollisionGroup]);
 		enemyAis.push(new shootAi({
 			object: enemy,
 			target: player,
 			bulletsGroup: bullets,
-			bulletCollisionGroup: bulletCollisionGroup,
-			targetCollisionGroup: playerCollisionGroup,
+			bulletCollisionGroup: bulletsCollisionGroup,
+			targetCollisionGroup: [playerCollisionGroup, stonesCollisionGroup],
 			difficulty: 2
 		}));
 		enemyAis.push(new movementAi(enemy, player, 50));
