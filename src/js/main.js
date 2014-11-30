@@ -53,17 +53,14 @@
 		fireDelay = 1000,
 		fireDisabled = false;
 
-	var walls,
-		wall_top,
+	var wall_top,
 		wall_bottom,
 		wall_left,
-		wall_right;
-
-	var wall_corner_top_left,
+		wall_right,
+		wall_corner_top_left,
 		wall_corner_top_right,
 		wall_corner_bottom_left,
 		wall_corner_bottom_right;
-
 
 	function preload() {
 
@@ -74,8 +71,6 @@
 		game.load.image('bullet', 'assets/sprites/bullet-red.png');
 		game.load.image('stone', 'assets/sprites/stone_1.png');
 		game.load.image('crate', 'assets/sprites/crate_1.png');
-		game.load.image('wall_h', 'assets/sprites/wall_h_1.png');
-		game.load.image('wall_v', 'assets/sprites/wall_v_1.png');
 
 	}
 
@@ -84,7 +79,7 @@
 		createLevelGrid();
 
 		//basic game settings
-		game.stage.backgroundColor = '#33cc33';
+		game.stage.backgroundColor = '#0e74af';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setImpactEvents(true);
@@ -98,7 +93,6 @@
 
 		//creating player
 		player = game.add.sprite(game.world.centerX, game.world.centerY, 'player'); // should be added to group and spawned on grid
-		//player.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(playerCollisionGroup);
 		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup, wallsCollisionGroup], function () {
@@ -151,24 +145,28 @@
 		stones.physicsBodyType = Phaser.Physics.P2JS;
 
 		// wall corners
-		wall_corner_top_left = game.add.sprite(0,0, 'wallCorner');
-		wall_corner_top_right = game.add.sprite(WORLD_WIDTH,0, 'wallCorner');
-		wall_corner_bottom_left = game.add.sprite(0,WORLD_HEIGHT, 'wallCorner');
-		wall_corner_bottom_right = game.add.sprite(WORLD_WIDTH,WORLD_HEIGHT, 'wallCorner');
+		wall_corner_top_left = game.add.sprite(0, 0, 'wallCorner');
+		wall_corner_top_right = game.add.sprite(WORLD_WIDTH, 0, 'wallCorner');
+		wall_corner_bottom_left = game.add.sprite(0, WORLD_HEIGHT, 'wallCorner');
+		wall_corner_bottom_right = game.add.sprite(WORLD_WIDTH, WORLD_HEIGHT, 'wallCorner');
+
+		// corners flipping
 		wall_corner_top_right.scale.x = -1;
 		wall_corner_bottom_left.scale.y = -1;
 		wall_corner_bottom_right.angle = 180;
 
 		// walls
 		wall_top = game.add.tileSprite(WORLD_WIDTH / 2, WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
-		wall_left = game.add.tileSprite(WALL_SIZE / 2, WORLD_HEIGHT / 2, TILES_Y * TILE_SIZE , WALL_SIZE, 'wallPattern');
+		wall_left = game.add.tileSprite(WALL_SIZE / 2, WORLD_HEIGHT / 2, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
 		wall_bottom = game.add.tileSprite(WORLD_WIDTH / 2, WORLD_HEIGHT - WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
-		wall_right = game.add.tileSprite(WORLD_WIDTH - WALL_SIZE / 2, WORLD_HEIGHT / 2, TILES_Y * TILE_SIZE , WALL_SIZE, 'wallPattern');
+		wall_right = game.add.tileSprite(WORLD_WIDTH - WALL_SIZE / 2, WORLD_HEIGHT / 2, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
 
+		// wall rotation
 		wall_left.angle = -90;
 		wall_right.angle = 90;
 		wall_bottom.angle = 180;
 
+		// wall creation
 		createWall(wall_top);
 		createWall(wall_left);
 		createWall(wall_bottom);
@@ -177,10 +175,10 @@
 		createLevel(stoneMask, stones);
 
 		createEnemy(enemies, 0, 0);
-		createEnemy(enemies, TILES_X-1, TILES_Y-1);
+		createEnemy(enemies, TILES_X - 1, TILES_Y - 1);
 	}
 
-	function createWall(wallTileSprite){
+	function createWall(wallTileSprite) {
 		wallTileSprite.enableBody = true;
 		wallTileSprite.physicsBodyType = Phaser.Physics.P2JS;
 		game.physics.p2.enable(wallTileSprite);
@@ -258,12 +256,11 @@
 		if (game.scale.isFullScreen) {
 			game.scale.stopFullScreen();
 		} else {
-			game.scale.startFullScreen(false);
+			game.scale.startFullScreen(false); // false = retain pixel art, true = smooth art
 		}
 	}
 
 	function update() {
-
 		if (cursors.left.isDown) {
 			player.body.velocity.x += -5;
 		} else if (cursors.right.isDown) {
