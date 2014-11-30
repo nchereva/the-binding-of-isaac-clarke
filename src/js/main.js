@@ -13,8 +13,8 @@
 		TILES_X = 13,
 		TILES_Y = 7,
 		GRID_START = WALL_SIZE + TILE_SIZE / 2,
-		WORLD_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
-		WORLD_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
+		ROOM_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
+		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
 		roomOffsetX, roomOffsetY;
 
 
@@ -38,7 +38,7 @@
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	];
 
-	var game = new Phaser.Game(WORLD_X, WORLD_Y, Phaser.AUTO, '', {
+	var game = new Phaser.Game(ROOM_X, ROOM_Y, Phaser.AUTO, '', {
 		preload: preload,
 		create: create,
 		update: update,
@@ -86,7 +86,7 @@
 		//basic game settings
 		game.stage.backgroundColor = '#0E74AF';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
-		game.world.setBounds(0, 0, WORLD_X * roomsMask[0].length, WORLD_Y * roomsMask.length);
+		game.world.setBounds(0, 0, ROOM_X * roomsMask[0].length, ROOM_Y * roomsMask.length);
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setImpactEvents(true);
 
@@ -97,7 +97,7 @@
 		collisionGroups.stonesCollisionGroup = game.physics.p2.createCollisionGroup();
 		collisionGroups.doorCollisionGroup = game.physics.p2.createCollisionGroup();
 
-		// game.world.setBounds(0, 0, WORLD_X, WORLD_Y);
+		// game.world.setBounds(0, 0, ROOM_X, ROOM_Y);
 
 
 		window.game = game;
@@ -172,7 +172,7 @@
 				if (!item) {
 					return;
 				}
-				roomConstructor(x * WORLD_X, y * WORLD_Y);
+				roomConstructor(x * ROOM_X, y * ROOM_Y);
 			});
 		});
 	}
@@ -222,7 +222,7 @@
 	}
 
 	var createPlayer = _.once(function() {
-		player = game.add.sprite(roomOffsetX + WORLD_X / 2, roomOffsetY + WORLD_Y / 2, 'player'); // should be added to group and spawned on grid
+		player = game.add.sprite(roomOffsetX + ROOM_X / 2, roomOffsetY + ROOM_Y / 2, 'player'); // should be added to group and spawned on grid
 		player.anchor.setTo(0.5, 0.5);
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(collisionGroups.playerCollisionGroup);
