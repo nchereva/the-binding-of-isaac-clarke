@@ -17,6 +17,8 @@
 		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
 		roomOffsetX, roomOffsetY;
 
+	var LevelGenerator = require('./world/LevelGenerator');
+	var levelGenerator = new LevelGenerator();
 
 	var roomsMask = [
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -178,6 +180,21 @@
 	}
 
 	function createRoom(x, y, orientation) {
+		var enemiesMask = levelGenerator.newMask({
+			x: TILES_X,
+			y: TILES_Y,
+			enemies: {
+				count: 4
+			}
+		});
+		var stoneMask = levelGenerator.newMask({
+			x: TILES_X,
+			y: TILES_Y,
+			enemies: {
+				count: 6
+			}
+		});
+
 		roomOffsetX = x;
 		roomOffsetY = y;
 		//creating player
@@ -186,7 +203,9 @@
 
 		createPlayer();
 		createLevel(stoneMask, stones, createStone);
+		createLevel(enemiesMask, enemies, createEnemy);
 		createRoomDoors(doors);
+
 
 		// createEnemy(enemies, 1, 1);
 		// createEnemy(enemies, 11, 5);
@@ -367,9 +386,9 @@
 			bulletsGroup: bullets,
 			bulletCollisionGroup: collisionGroups.bulletsCollisionGroup,
 			targetCollisionGroup: [collisionGroups.playerCollisionGroup, collisionGroups.stonesCollisionGroup, collisionGroups.doorCollisionGroup],
-			difficulty: 2
+			difficulty: 1
 		}));
-		enemyAis.push(new MovementAi(enemy, player, 500));
+		// enemyAis.push(new MovementAi(enemy, player, 500));
 	}
 
 	function createLevelGrid() {
@@ -383,7 +402,7 @@
 	}
 
 	function getSpriteCoordinates(column, row) {
-		if(column instanceof Object){
+		if (column instanceof Object) {
 			row = column.y;
 			column = column.x;
 		}
