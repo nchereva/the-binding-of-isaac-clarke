@@ -1,52 +1,75 @@
-(function () {
+(function() {
 	'use strict';
 
 	var _ = require('lodash');
-	var movementAi = require('./ai/movement');
-	var shootAi = require('./ai/shooting');
+	var MovementAi = require('./ai/movement');
+	var ShootAi = require('./ai/shooting');
+	var Doors = require('./world/Doors');
+	var DOOR_DIRECTIONS = Doors.DOOR_DIRECTIONS;
+
 
 	var TILE_SIZE = 50,
 		WALL_SIZE = TILE_SIZE * 1.75,
 		TILES_X = 13,
 		TILES_Y = 7,
-		GRID_START = WALL_SIZE + TILE_SIZE / 2;
+		GRID_START = WALL_SIZE + TILE_SIZE / 2,
+		ROOM_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
+		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
+		roomOffsetX, roomOffsetY;
 
-	var stoneMask = [
-		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
-		[1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0]
+	var LevelGenerator = require('./world/LevelGenerator');
+	var levelGenerator = new LevelGenerator();
+
+	var roomsMask = [
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	];
 
-	var game = new Phaser.Game(TILES_X * TILE_SIZE + 2 * WALL_SIZE, TILES_Y * TILE_SIZE + 2 * WALL_SIZE, Phaser.AUTO, '', {
+	var stoneMask = [
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+		[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+		[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+		[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+		[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	];
+
+	var game = new Phaser.Game(ROOM_X, ROOM_Y, Phaser.AUTO, '', {
 		preload: preload,
 		create: create,
-		update: update
+		update: update,
+		render: render
 	});
 
-	var playerCollisionGroup,
-		enemiesCollisionGroup,
-		bulletsCollisionGroup,
-		stonesCollisionGroup;
+	var collisionGroups = {
+		playerCollisionGroup: {},
+		enemiesCollisionGroup: {},
+		bulletsCollisionGroup: {},
+		stonesCollisionGroup: {},
+		doorCollisionGroup: {},
+	};
+
 
 	var player,
 		enemies,
-		enemy,
 		enemyAis = [],
+		doors,
 		stones,
-		stone,
 		cursors,
 		levelGrid,
 		keys = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
-	//		Bullet = require('./bullet/Bullet.js'),
+		//		Bullet = require('./bullet/Bullet.js'),
 		bullets,
-		bullet,
 		fireRate = 2,
 		fireDelay = 1000,
-		fireDisabled = false;
+		fireDisabled = false,
+		doorsHelper;
 
 	function preload() {
 
@@ -63,28 +86,26 @@
 		createLevelGrid();
 
 		//basic game settings
-		game.stage.backgroundColor = '#33cc33';
+		game.stage.backgroundColor = '#0E74AF';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
+		game.world.setBounds(0, 0, ROOM_X * roomsMask[0].length, ROOM_Y * roomsMask.length);
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		game.physics.p2.setImpactEvents(true);
 
 		//collision groups
-		playerCollisionGroup = game.physics.p2.createCollisionGroup();
-		enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
-		bulletsCollisionGroup = game.physics.p2.createCollisionGroup();
-		stonesCollisionGroup = game.physics.p2.createCollisionGroup();
+		collisionGroups.playerCollisionGroup = game.physics.p2.createCollisionGroup();
+		collisionGroups.enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
+		collisionGroups.bulletsCollisionGroup = game.physics.p2.createCollisionGroup();
+		collisionGroups.stonesCollisionGroup = game.physics.p2.createCollisionGroup();
+		collisionGroups.doorCollisionGroup = game.physics.p2.createCollisionGroup();
+
+		// game.world.setBounds(0, 0, ROOM_X, ROOM_Y);
+
+
+		window.game = game;
 
 		game.physics.p2.updateBoundsCollisionGroup();
 
-		//creating player
-		player = game.add.sprite(game.world.centerX, game.world.centerY, 'player'); // should be added to group and spawned on grid
-		player.anchor.setTo(0.5, 0.5);
-		game.physics.p2.enable(player);
-		player.body.setCollisionGroup(playerCollisionGroup);
-		player.body.collides([enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup], function () {
-			console.log('player collision');
-		}, this);
-		player.body.fixedRotation = true;
 
 		cursors = game.input.keyboard.createCursorKeys();
 
@@ -94,24 +115,24 @@
 		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
 		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
 
-		_.each(keys, function (key) {
-			key.onDown.add(function () {
+		_.each(keys, function(key) {
+			key.onDown.add(function() {
 
 				//fullscreen toggle
-				if (key.keyCode == Phaser.Keyboard.F) {
+				if (key.keyCode === Phaser.Keyboard.F) {
 					toggleFullscreen();
 				}
 			});
 
-			key.onHoldCallback = function () {
+			key.onHoldCallback = function() {
 				//direction fire
-				if (key.keyCode == Phaser.Keyboard.A) {
+				if (key.keyCode === Phaser.Keyboard.A) {
 					playerFire('left');
-				} else if (key.keyCode == Phaser.Keyboard.D) {
+				} else if (key.keyCode === Phaser.Keyboard.D) {
 					playerFire('right');
-				} else if (key.keyCode == Phaser.Keyboard.W) {
+				} else if (key.keyCode === Phaser.Keyboard.W) {
 					playerFire('top');
-				} else if (key.keyCode == Phaser.Keyboard.S) {
+				} else if (key.keyCode === Phaser.Keyboard.S) {
 					playerFire('bottom');
 				}
 			};
@@ -130,11 +151,110 @@
 		stones.enableBody = true;
 		stones.physicsBodyType = Phaser.Physics.P2JS;
 
-		createLevel(stoneMask, stones);
+		doors = game.add.group();
+		doors.enableBody = true;
+		doors.physicsBodyType = Phaser.Physics.P2JS;
 
-		createEnemy(enemies, 1, 1);
-		createEnemy(enemies, 11, 5);
+		doorsHelper = new Doors(game, TILES_X, TILES_Y);
+
+		createWorld(roomsMask, createRoom);
+
+		game.camera.focusOnXY(player.x, player.y);
+
 	}
+
+
+	function createWorld(roomMask, roomConstructor) {
+		if (!_.isArray(roomMask)) {
+			return;
+		}
+
+		_.forIn(roomMask, function(row, y) {
+			_.forIn(row, function(item, x) {
+				if (!item) {
+					return;
+				}
+				roomConstructor(x * ROOM_X, y * ROOM_Y);
+			});
+		});
+	}
+
+	function createRoom(x, y, orientation) {
+		var enemiesMask = levelGenerator.newMask({
+			x: TILES_X,
+			y: TILES_Y,
+			enemies: {
+				count: 4
+			}
+		});
+		var stoneMask = levelGenerator.newMask({
+			x: TILES_X,
+			y: TILES_Y,
+			enemies: {
+				count: 6
+			}
+		});
+
+		roomOffsetX = x;
+		roomOffsetY = y;
+		//creating player
+
+		game.add.text(x, y, _.uniqueId('_room'));
+
+		createPlayer();
+		createLevel(stoneMask, stones, createStone);
+		createLevel(enemiesMask, enemies, createEnemy);
+		createRoomDoors(doors);
+
+
+		// createEnemy(enemies, 1, 1);
+		// createEnemy(enemies, 11, 5);
+
+	}
+
+	function createRoomDoors(group) {
+		var options = {
+			spriteName: 'crate',
+			collisionGroup: collisionGroups.doorCollisionGroup,
+			collisionGroups: collisionGroups
+		};
+		doorsHelper.createDoor(_.extend({
+			group: group,
+			direction: DOOR_DIRECTIONS.LEFT,
+			position: getSpriteCoordinates(doorsHelper.getDoorPosition(DOOR_DIRECTIONS.LEFT))
+		}, options));
+		doorsHelper.createDoor(_.extend({
+			group: group,
+			direction: DOOR_DIRECTIONS.RIGHT,
+			position: getSpriteCoordinates(doorsHelper.getDoorPosition(DOOR_DIRECTIONS.RIGHT))
+		}, options));
+		doorsHelper.createDoor(_.extend({
+			group: group,
+			direction: DOOR_DIRECTIONS.TOP,
+			position: getSpriteCoordinates(doorsHelper.getDoorPosition(DOOR_DIRECTIONS.TOP))
+		}, options));
+		doorsHelper.createDoor(_.extend({
+			group: group,
+			direction: DOOR_DIRECTIONS.BOTTOM,
+			position: getSpriteCoordinates(doorsHelper.getDoorPosition(DOOR_DIRECTIONS.BOTTOM))
+		}, options));
+	}
+
+	var createPlayer = _.once(function() {
+		player = game.add.sprite(roomOffsetX + ROOM_X / 2, roomOffsetY + ROOM_Y / 2, 'player'); // should be added to group and spawned on grid
+		player.anchor.setTo(0.5, 0.5);
+		game.physics.p2.enable(player);
+		player.body.setCollisionGroup(collisionGroups.playerCollisionGroup);
+		player.body.collides(_.values(_.omit(collisionGroups, 'playerCollisionGroup')));
+		player.body.fixedRotation = true;
+
+		player.events.onOutOfBounds.add(function() {
+			game.camera.follow(player);
+		});
+
+		game.camera.follow(player);
+	});
+
 
 	function playerFire(direction) {
 
@@ -178,23 +298,21 @@
 			bullet.body.velocity.x = bulletVelocity.x;
 			bullet.body.velocity.y = bulletVelocity.y;
 			bullet.body.setCircle(10);
-			bullet.body.setCollisionGroup(bulletsCollisionGroup);
-			bullet.body.collides([enemiesCollisionGroup], function (bul, en) {
+			bullet.body.setCollisionGroup(collisionGroups.bulletsCollisionGroup);
+			bullet.body.collides([collisionGroups.enemiesCollisionGroup], function(bul, en) {
 				if (bul.sprite.alive && en.sprite.alive) {
 					bul.sprite.kill();
 					en.sprite.kill();
 				}
-				console.log('collision')
 			}, this);
 
-			bullet.body.collides([stonesCollisionGroup], function (bul, en) {
+			bullet.body.collides([collisionGroups.stonesCollisionGroup, collisionGroups.doorCollisionGroup], function(bul) {
 				if (bul.sprite.alive) {
 					bul.sprite.kill();
 				}
-				console.log('collision')
-			}, this);
+			});
 
-			var fireRateTimeout = setTimeout(function () {
+			var fireRateTimeout = setTimeout(function() {
 				fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
@@ -221,48 +339,56 @@
 		} else if (cursors.down.isDown) {
 			player.body.velocity.y += 5;
 		}
-		_.each(enemyAis, function (ai) {
-			if (ai.move) ai.move();
-			if (ai.shoot) ai.shoot();
-		})
+		_.each(enemyAis, function(ai) {
+			if (ai.move) {
+				ai.move();
+			}
+			if (ai.shoot) {
+				ai.shoot();
+			}
+		});
 	}
 
-	function createLevel(mask, group) {
+	function createLevel(mask, group, constructor) {
 		if (!_.isArray(mask)) {
 			return;
 		}
 
-		_.forIn(mask, function (row, y) {
-			_.forIn(row, function (item, x) {
-				if (!item) return;
-				createStone(group, x, y);
-			})
-		})
+		_.forIn(mask, function(row, y) {
+			_.forIn(row, function(value, x) {
+				if (!value) {
+					return;
+				}
+				constructor(group, x, y, value);
+			});
+		});
 	}
 
 	function createStone(group, column, row) {
 		var stone = createAtPoint(group, column, row, 'stone');
-		stone.body.setCollisionGroup(stonesCollisionGroup);
-		stone.body.collides([playerCollisionGroup, enemiesCollisionGroup, bulletsCollisionGroup, stonesCollisionGroup]);
+		stone.body.setCollisionGroup(collisionGroups.stonesCollisionGroup);
+		stone.body.collides(_.values(_.omit(collisionGroups, 'stonesCollisionGroup')));
 		stone.body.fixedRotation = true;
 		stone.body.static = true;
 	}
 
+
+
 	function createEnemy(group, column, row) {
 		var enemy = createAtPoint(group, column, row, 'enemy');
-		enemy._id = _.uniqueId('enemy_')
+		enemy._id = _.uniqueId('enemy_');
 		enemy.body.fixedRotation = true;
-		enemy.body.setCollisionGroup(enemiesCollisionGroup);
-		enemy.body.collides([bulletsCollisionGroup, enemiesCollisionGroup, playerCollisionGroup, stonesCollisionGroup]);
-		enemyAis.push(new shootAi({
+		enemy.body.setCollisionGroup(collisionGroups.enemiesCollisionGroup);
+		enemy.body.collides(_.values(collisionGroups));
+		enemyAis.push(new ShootAi({
 			object: enemy,
 			target: player,
 			bulletsGroup: bullets,
-			bulletCollisionGroup: bulletsCollisionGroup,
-			targetCollisionGroup: [playerCollisionGroup, stonesCollisionGroup],
-			difficulty: 2
+			bulletCollisionGroup: collisionGroups.bulletsCollisionGroup,
+			targetCollisionGroup: [collisionGroups.playerCollisionGroup, collisionGroups.stonesCollisionGroup, collisionGroups.doorCollisionGroup],
+			difficulty: 1
 		}));
-		enemyAis.push(new movementAi(enemy, player, 50));
+		// enemyAis.push(new MovementAi(enemy, player, 500));
 	}
 
 	function createLevelGrid() {
@@ -275,10 +401,24 @@
 		}
 	}
 
-	function createAtPoint(group, column, row, sprite) {
-		var spawn_x = levelGrid[column][row][0];
-		var spawn_y = levelGrid[column][row][1];
-		return group.create(spawn_x, spawn_y, sprite);
+	function getSpriteCoordinates(column, row) {
+		if (column instanceof Object) {
+			row = column.y;
+			column = column.x;
+		}
+		return {
+			x: levelGrid[column][row][0] + roomOffsetX,
+			y: levelGrid[column][row][1] + roomOffsetY
+		};
 	}
 
+	function createAtPoint(group, column, row, sprite) {
+		var coords = getSpriteCoordinates(column, row);
+		return group.create(coords.x, coords.y, sprite);
+	}
+
+	function render() {
+		game.debug.cameraInfo(game.camera, 32, 32);
+		game.debug.spriteCoords(player, 32, 475);
+	}
 })();
