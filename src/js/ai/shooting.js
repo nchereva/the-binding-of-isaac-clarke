@@ -107,7 +107,7 @@
 				}, this);
 				this.startShooting();
 			}
-		}
+		};
 		this.object.events.onKilled.add(this.stopShooting.bind(this));
 	}
 })();
