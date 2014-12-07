@@ -14,7 +14,11 @@ var gulp = require('gulp'),
   browserify = require('browserify'),
   watchify = require('watchify'),
   gulpif = require('gulp-if'),
+  plumber = require('gulp-plumber'),
+  combiner = require('stream-combiner2'),
   paths;
+
+var browserSync = require('browser-sync');
 
 var watching = false;
 
@@ -28,6 +32,22 @@ paths = {
   entry: './src/js/main.js',
   dist: './dist/'
 };
+
+gulp.task('server', function() {
+  browserSync({
+    server: {
+      baseDir: paths.dist
+    },
+    port: 9001
+  });
+});
+
+// Reload all Browsers
+gulp.task('bs-reload', ['build'], function() {
+  browserSync.reload();
+});
+
+
 
 gulp.task('clean', function() {
   return gulp.src(paths.dist, {
@@ -63,29 +83,40 @@ gulp.task('compile', ['clean'], function() {
     debug: watching
   });
 
-  var bundlee = function() {
-    return bundler
-      .bundle()
-      .on('error', function(err) {
-        gutil.log(err.message);
-        this.end();
-      })
-      .pipe(source('main.min.js'))
-      .pipe(jshint('.jshintrc'))
-      .pipe(jshint.reporter('default'))
-      .pipe(gulpif(!watching, streamify(uglify({
-        outSourceMaps: false
-      }))))
-      .pipe(gulp.dest(paths.dist))
-      .on('error', gutil.log);
-  };
+  // [
+  //    gulp.src('bootstrap/js/*.js'),
+  //    uglify(),
+  //    gulp.dest('public/bootstrap')
+  //  ]
 
-  if (watching) {
-    bundler = watchify(bundler);
-    bundler.on('update', bundlee)
-  }
+  // any errors in the above streams will get caught
+  // by this listener, instead of being thrown:
+  // .on('error', function(err) {
+  //         gutil.log(err.message);
+  //         this.end();
+  //       })
+  var combined = combiner.obj(
+    bundler.bundle(),
+    plumber(),
+    source('main.min.js'),
+    jshint('.jshintrc'),
+    jshint.reporter('default'),
+    gulpif(!watching, streamify(uglify({
+      outSourceMaps: false
+    }))),
+    gulp.dest(paths.dist));
 
-  return bundlee();
+  combined.on('error', gutil.log);
+
+
+  // if (watching) {
+  //   bundler = watchify(bundler);
+  //   bundler.on('update', bundlee)
+  // }
+
+  // return bundlee();
+
+  return combined;
 });
 
 gulp.task('minifycss', ['clean'], function() {
@@ -117,22 +148,24 @@ gulp.task('minifyhtml', ['processhtml'], function() {
 
 gulp.task('html', ['build'], function() {
   gulp.src('dist/*.html')
-    .pipe(connect.reload())
+    .pipe(browserSync.reload({
+      stream: true
+    }))
     .on('error', gutil.log);
 });
 
-gulp.task('connect', function() {
-  connect.server({
-    root: ['./dist'],
-    port: 9876,
-    livereload: true
-  });
-});
+// gulp.task('connect', function() {
+//   connect.server({
+//     root: ['./dist'],
+//     port: 9876,
+//     livereload: true
+//   });
+// });
 
 gulp.task('watch', function() {
   watching = true;
-  return gulp.watch(['./src/index.html', paths.css, paths.js], ['build', 'html']);
+  gulp.watch(['./src/index.html', paths.css,paths.js], ['bs-reload']);
 });
 
-gulp.task('default', ['connect', 'watch', 'build']);
+gulp.task('default', ['server', 'watch', 'build']);
 gulp.task('build', ['clean', 'copy', 'copylibs', 'compile', 'minifycss', 'processhtml', 'minifyhtml']);

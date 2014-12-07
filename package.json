@@ -6,6 +6,7 @@
   "version": "0.0.0",
   "dependencies": {
     "bower": "*",
+    "browser-sync": "^1.7.2",
     "browserify": "*",
     "gulp": "*",
     "gulp-concat": "*",
@@ -24,6 +25,7 @@
     "gulp-watch": "*",
     "lodash": "^2.4.1",
     "phaser": "*",
+    "stream-combiner2": "^1.0.2",
     "tiny-lr": "*",
     "vinyl-source-stream": "*",
     "watchify": "*"

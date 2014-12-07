@@ -1,16 +1,15 @@
 (function () {
 	'use strict';
-
 	var _ = require('lodash');
 	var movementAi = require('./ai/movement');
 	var shootAi = require('./ai/shooting');
-
+	// console.log/asd)a'sad;asd;asdas
+console.log(2)
 	var TILE_SIZE = 50,
 		WALL_SIZE = TILE_SIZE * 1.75,
 		TILES_X = 13,
 		TILES_Y = 7,
 		GRID_START = WALL_SIZE + TILE_SIZE / 2;
-
 	var stoneMask = [
 		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
 		[1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0],
@@ -26,6 +25,7 @@
 		create: create,
 		update: update
 	});
+
 
 	var playerCollisionGroup,
 		enemiesCollisionGroup,
