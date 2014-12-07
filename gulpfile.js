@@ -18,6 +18,8 @@ var gulp = require('gulp'),
 
 var watching = false;
 
+var isWin = /^win/.test(process.platform);
+
 paths = {
   assets: 'src/assets/**/*',
   css: 'src/css/*.css',
@@ -30,13 +32,15 @@ paths = {
 };
 
 gulp.task('clean', function() {
-  //return gulp.src(paths.dist, {
-  //    read: false
-  //  })
-  //  .pipe(rimraf({
-  //    force: true
-  //  }))
-  //  .on('error', gutil.log);
+  if (!isWin) {
+    return gulp.src(paths.dist, {
+        read: false
+      })
+      .pipe(rimraf({
+        force: true
+      }))
+      .on('error', gutil.log);
+  }
 });
 
 gulp.task('copy', ['clean'], function() {
