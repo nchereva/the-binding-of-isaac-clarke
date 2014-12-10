@@ -9,8 +9,8 @@
 
 	var TILE_SIZE = 50,
 		WALL_SIZE = TILE_SIZE * 1.6,
-		TILES_X = 15,
-		TILES_Y = 9,
+		TILES_X = 16,
+		TILES_Y = 10,
 		GRID_START = WALL_SIZE + TILE_SIZE / 2,
 		ROOM_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
 		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
@@ -58,6 +58,10 @@
 		fireDelay = 1000,
 		fireDisabled = false,
 		doorsHelper;
+
+	var wallSprite,
+		wallSprite1,
+		wallSprite2;
 
 	var wall_top,
 		wall_bottom,
@@ -208,13 +212,13 @@
 
 		game.add.text(x, y, _.uniqueId('_room'));
 
-		createWalls();
+		createWalls(roomOffsetX, roomOffsetY);
 
 		//creating player
 		createPlayer();
 		createLevel(stoneMask, stones, createStone);
-		createLevel(enemiesMask, enemies, createEnemy);
-		createRoomDoors(doors);
+//		createLevel(enemiesMask, enemies, createEnemy);
+//		createRoomDoors(doors);
 	}
 
 	function createWalls() {
@@ -229,26 +233,56 @@
 		wall_corner_bottom_left.scale.y = -1;
 		wall_corner_bottom_right.angle = 180;
 
-		var roomCenterX = roomOffsetX + ROOM_X / 2,
-			roomCenterY = roomOffsetY + ROOM_Y / 2,
-			addSprite  = game.add.tileSprite.bind(game.add);
-
 		// walls
-		wall_top = addSprite(roomCenterX, roomOffsetY + WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
-		wall_left = addSprite(roomOffsetX + WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
-		wall_bottom = addSprite(roomCenterX, roomOffsetY + ROOM_Y - WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
-		wall_right = addSprite(roomOffsetX + ROOM_X - WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
+//		wall_top = addSprite(roomCenterX, roomOffsetY + WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
+//		wall_left = addSprite(roomOffsetX + WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
+//		wall_bottom = addSprite(roomCenterX, roomOffsetY + ROOM_Y - WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
+//		wall_right = addSprite(roomOffsetX + ROOM_X - WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
 
 		// wall rotation
-		wall_left.angle = -90;
-		wall_right.angle = 90;
-		wall_bottom.angle = 180;
+//		wall_left.angle = -90;
+//		wall_right.angle = 90;
+//		wall_bottom.angle = 180;
 
 		// wall creation
-		createWall(wall_top);
-		createWall(wall_left);
-		createWall(wall_bottom);
-		createWall(wall_right);
+//		createWall(wall_top);
+//		createWall(wall_left);
+//		createWall(wall_bottom);
+//		createWall(wall_right);
+
+		generateWall('top', true);
+	}
+
+	function generateWall(position, hasDoor) {
+		var roomCenterX = roomOffsetX + ROOM_X / 2,
+			roomCenterY = roomOffsetY + ROOM_Y / 2,
+			addSprite = game.add.tileSprite.bind(game.add);
+
+		if (hasDoor) {
+
+			switch (position) {
+				case ('top'):
+					var wallStartX = roomOffsetX + WALL_SIZE,
+						wallStartY = roomOffsetY + WALL_SIZE,
+						fullWidth = TILES_X * TILE_SIZE,
+						halfwidth = fullWidth / 2 - TILE_SIZE,
+						height = WALL_SIZE,
+						x1 = wallStartX + halfwidth / 2,
+						y = roomOffsetY + WALL_SIZE / 2,
+						wallEndX = wallStartX + fullWidth,
+						x2 = wallEndX - halfwidth / 2;
+
+					wallSprite1 = addSprite(x1, y, halfwidth, height, 'wallPattern');
+					wallSprite2 = addSprite(x2, y, halfwidth, height, 'wallPattern');
+					break;
+			}
+			createWall(wallSprite1);
+			createWall(wallSprite2);
+
+		} else {
+			wallSprite = addSprite(roomCenterX, roomOffsetY + WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
+			createWall(wallSprite);
+		}
 	}
 
 	function createRoomDoors(group) {
