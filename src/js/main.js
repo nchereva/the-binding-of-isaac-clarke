@@ -184,7 +184,7 @@
 		doorSprite.body.static = true;
 		doorSprite.body.collides(collisionGroups.playerCollisionGroup, doorsCollisionHandler);
 		doorSprite.body._id = _.uniqueId('door_');
-//		doorSprite.body.collides(_.values(collisionGroups));
+		doorSprite.body.collides(_.values(collisionGroups));
 	}
 
 	function doorsCollisionHandler(door, player) {
@@ -250,16 +250,16 @@
 
 		game.add.text(x, y, _.uniqueId('_room'));
 
-		createWallsAndCorners(roomOffsetX, roomOffsetY);
+		createWalls(true, true, true, true); // top, right, bottom, left
 
 		//creating player
 		createPlayer();
+
 		createLevel(stoneMask, stones, createStone);
-//		createLevel(enemiesMask, enemies, createEnemy);
-//		createRoomDoors(doors);
+		createLevel(enemiesMask, enemies, createEnemy);
 	}
 
-	function createWallsAndCorners() {
+	function createCorners() {
 		// wall corners
 		wall_corner_top_left = game.add.sprite(roomOffsetX, roomOffsetY, 'wallCorner');
 		wall_corner_top_right = game.add.sprite(roomOffsetX + ROOM_X, roomOffsetY, 'wallCorner');
@@ -270,14 +270,10 @@
 		wall_corner_top_right.scale.x = -1;
 		wall_corner_bottom_left.scale.y = -1;
 		wall_corner_bottom_right.angle = 180;
-
-		createWall('top', true);
-		createWall('left', true);
-		createWall('bottom', true);
-		createWall('right', true);
 	}
 
-	function createWall(position, hasDoor) {
+	function createWalls(top, right, bottom, left) {
+		createCorners();
 		var roomCenterX = roomOffsetX + ROOM_X / 2,
 			roomCenterY = roomOffsetY + ROOM_Y / 2,
 			addSprite = game.add.tileSprite.bind(game.add);
@@ -293,80 +289,81 @@
 			wallHeight = WALL_SIZE,
 			x1, x2, y1, y2;
 
-		switch (position) {
-			case ('top'):
-				if (hasDoor) {
-					x1 = wallStartX + wallPieceWidthX / 2;
-					x2 = wallEndX - wallPieceWidthX / 2;
-					y1 = roomOffsetY + WALL_SIZE / 2;
-					wallPiece1 = addSprite(x1, y1, wallPieceWidthX, wallHeight, 'wallPattern');
-					wallPiece2 = addSprite(x2, y1, wallPieceWidthX, wallHeight, 'wallPattern');
-					door = game.add.sprite(roomCenterX, roomOffsetY + 15, 'doorCollisionSprite');
-					break;
-				} else {
-					wallDoorless = addSprite(roomCenterX, roomOffsetY + WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
-					enableWallCollision(wallDoorless);
-					break;
-				}
-			case ('left'):
-				if (hasDoor) {
-					x1 = roomOffsetX + WALL_SIZE / 2;
-					y1 = wallStartY + wallPieceWidthY / 2;
-					y2 = wallEndY - wallPieceWidthY / 2;
-					wallPiece1 = addSprite(x1, y1, wallPieceWidthY, wallHeight, 'wallPattern');
-					wallPiece2 = addSprite(x1, y2, wallPieceWidthY, wallHeight, 'wallPattern');
-					door = game.add.sprite(roomOffsetX + 15, roomCenterY, 'doorCollisionSprite');
-					door.angle = -90;
-					wallPiece1.angle = -90;
-					wallPiece2.angle = -90;
-					break;
-				} else {
-					wallDoorless = addSprite(roomOffsetX + WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
-					wallDoorless.angle = -90;
-					enableWallCollision(wallDoorless);
-					break;
-				}
-			case ('bottom'):
-				if (hasDoor) {
-					x1 = wallStartX + wallPieceWidthX / 2;
-					x2 = wallEndX - wallPieceWidthX / 2;
-					y1 = wallEndY + WALL_SIZE / 2;
-					wallPiece1 = addSprite(x1, y1, wallPieceWidthX, wallHeight, 'wallPattern');
-					wallPiece2 = addSprite(x2, y1, wallPieceWidthX, wallHeight, 'wallPattern');
-					door = game.add.sprite(roomCenterX, roomOffsetY + ROOM_Y - 15, 'doorCollisionSprite');
-					door.angle = 180;
-					wallPiece1.angle = 180;
-					wallPiece2.angle = 180;
-					break;
-				} else {
-					wallDoorless = addSprite(roomCenterX, roomOffsetY + ROOM_Y - WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
-					wallDoorless.angle = 180;
-					enableWallCollision(wallDoorless);
-					break;
-				}
-			case ('right'):
-				if (hasDoor) {
-					x1 = wallEndX + WALL_SIZE / 2;
-					y1 = wallStartY + wallPieceWidthY / 2;
-					y2 = wallEndY - wallPieceWidthY / 2;
-					wallPiece1 = addSprite(x1, y1, wallPieceWidthY, wallHeight, 'wallPattern');
-					wallPiece2 = addSprite(x1, y2, wallPieceWidthY, wallHeight, 'wallPattern');
-					door = game.add.sprite(roomOffsetX + ROOM_X - 15, roomCenterY, 'doorCollisionSprite');
-					door.angle = 90;
-					wallPiece1.angle = 90;
-					wallPiece2.angle = 90;
-					break;
-				} else {
-					wallDoorless = addSprite(roomOffsetX + ROOM_X - WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
-					wallDoorless.angle = 90;
-					enableWallCollision(wallDoorless);
-					break;
-				}
+		if (top) {
+			x1 = wallStartX + wallPieceWidthX / 2;
+			x2 = wallEndX - wallPieceWidthX / 2;
+			y1 = roomOffsetY + WALL_SIZE / 2;
+			wallPiece1 = addSprite(x1, y1, wallPieceWidthX, wallHeight, 'wallPattern');
+			wallPiece2 = addSprite(x2, y1, wallPieceWidthX, wallHeight, 'wallPattern');
+			door = game.add.sprite(roomCenterX, roomOffsetY + 15, 'doorCollisionSprite');
+			enableWallCollision(wallPiece1);
+			enableWallCollision(wallPiece2);
+			enableDoorCollision(door);
+			door.body._direction = 'top';
+		} else {
+			wallDoorless = addSprite(roomCenterX, roomOffsetY + WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
+			enableWallCollision(wallDoorless);
 		}
-		enableWallCollision(wallPiece1);
-		enableWallCollision(wallPiece2);
-		enableDoorCollision(door);
-		door.body._direction = position;
+
+		if (right) {
+			x1 = wallEndX + WALL_SIZE / 2;
+			y1 = wallStartY + wallPieceWidthY / 2;
+			y2 = wallEndY - wallPieceWidthY / 2;
+			wallPiece1 = addSprite(x1, y1, wallPieceWidthY, wallHeight, 'wallPattern');
+			wallPiece2 = addSprite(x1, y2, wallPieceWidthY, wallHeight, 'wallPattern');
+			door = game.add.sprite(roomOffsetX + ROOM_X - 15, roomCenterY, 'doorCollisionSprite');
+			door.angle = 90;
+			wallPiece1.angle = 90;
+			wallPiece2.angle = 90;
+			enableWallCollision(wallPiece1);
+			enableWallCollision(wallPiece2);
+			enableDoorCollision(door);
+			door.body._direction = 'right';
+		} else {
+			wallDoorless = addSprite(roomOffsetX + ROOM_X - WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
+			wallDoorless.angle = 90;
+			enableWallCollision(wallDoorless);
+		}
+
+		if (bottom) {
+			x1 = wallStartX + wallPieceWidthX / 2;
+			x2 = wallEndX - wallPieceWidthX / 2;
+			y1 = wallEndY + WALL_SIZE / 2;
+			wallPiece1 = addSprite(x1, y1, wallPieceWidthX, wallHeight, 'wallPattern');
+			wallPiece2 = addSprite(x2, y1, wallPieceWidthX, wallHeight, 'wallPattern');
+			door = game.add.sprite(roomCenterX, roomOffsetY + ROOM_Y - 15, 'doorCollisionSprite');
+			door.angle = 180;
+			wallPiece1.angle = 180;
+			wallPiece2.angle = 180;
+			enableWallCollision(wallPiece1);
+			enableWallCollision(wallPiece2);
+			enableDoorCollision(door);
+			door.body._direction = 'bottom';
+		} else {
+			wallDoorless = addSprite(roomCenterX, roomOffsetY + ROOM_Y - WALL_SIZE / 2, TILES_X * TILE_SIZE, WALL_SIZE, 'wallPattern');
+			wallDoorless.angle = 180;
+			enableWallCollision(wallDoorless);
+		}
+
+		if (left) {
+			x1 = roomOffsetX + WALL_SIZE / 2;
+			y1 = wallStartY + wallPieceWidthY / 2;
+			y2 = wallEndY - wallPieceWidthY / 2;
+			wallPiece1 = addSprite(x1, y1, wallPieceWidthY, wallHeight, 'wallPattern');
+			wallPiece2 = addSprite(x1, y2, wallPieceWidthY, wallHeight, 'wallPattern');
+			door = game.add.sprite(roomOffsetX + 15, roomCenterY, 'doorCollisionSprite');
+			door.angle = -90;
+			wallPiece1.angle = -90;
+			wallPiece2.angle = -90;
+			enableWallCollision(wallPiece1);
+			enableWallCollision(wallPiece2);
+			enableDoorCollision(door);
+			door.body._direction = 'left';
+		} else {
+			wallDoorless = addSprite(roomOffsetX + WALL_SIZE / 2, roomCenterY, TILES_Y * TILE_SIZE, WALL_SIZE, 'wallPattern');
+			wallDoorless.angle = -90;
+			enableWallCollision(wallDoorless);
+		}
 	}
 
 	var createPlayer = _.once(function () {
@@ -505,7 +502,7 @@
 				console.log('collision')
 			}, this);
 
-			bullet.body.collides([collisionGroups.stonesCollisionGroup, collisionGroups.doorCollisionGroup, collisionGroups.wallsCollisionGroup], function (bul) {
+			bullet.body.collides([collisionGroups.stonesCollisionGroup, collisionGroups.doorsCollisionGroup, collisionGroups.wallsCollisionGroup], function (bul) {
 				if (bul.sprite.alive) {
 					bul.sprite.kill();
 				}
