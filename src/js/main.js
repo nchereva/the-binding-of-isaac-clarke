@@ -54,7 +54,7 @@
 		stones,
 		cursors,
 		levelGrid,
-		keys = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
+		keyboardControls = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		fireRate = 2,
@@ -111,33 +111,14 @@
 
 		cursors = game.input.keyboard.createCursorKeys();
 
-		keys['w'] = game.input.keyboard.addKey(Phaser.Keyboard.W);
-		keys['a'] = game.input.keyboard.addKey(Phaser.Keyboard.A);
-		keys['s'] = game.input.keyboard.addKey(Phaser.Keyboard.S);
-		keys['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
-		keys['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
+		keyboardControls['w'] = game.input.keyboard.addKey(Phaser.Keyboard.W);
+		keyboardControls['a'] = game.input.keyboard.addKey(Phaser.Keyboard.A);
+		keyboardControls['s'] = game.input.keyboard.addKey(Phaser.Keyboard.S);
+		keyboardControls['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
+		keyboardControls['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
 
-		_.each(keys, function (key) {
-			key.onDown.add(function () {
-
-				//fullscreen toggle
-				if (key.keyCode === Phaser.Keyboard.F) {
-					toggleFullscreen();
-				}
-			});
-
-			key.onHoldCallback = function () {
-				//direction fire
-				if (key.keyCode === Phaser.Keyboard.A) {
-					playerFire('left');
-				} else if (key.keyCode === Phaser.Keyboard.D) {
-					playerFire('right');
-				} else if (key.keyCode === Phaser.Keyboard.W) {
-					playerFire('top');
-				} else if (key.keyCode === Phaser.Keyboard.S) {
-					playerFire('bottom');
-				}
-			};
+		keyboardControls['f'].onDown.add(function () {
+			toggleFullscreen();
 		});
 
 		// Should those be created by function?
@@ -234,7 +215,7 @@
 			x: TILES_X,
 			y: TILES_Y,
 			enemies: {
-				count: 4
+				count: 6
 			}
 		});
 		var stoneMask = levelGenerator.newMask({
@@ -255,7 +236,7 @@
 		//creating player
 		createPlayer();
 
-		createLevel(stoneMask, stones, createStone);
+//		createLevel(stoneMask, stones, createStone);
 		createLevel(enemiesMask, enemies, createEnemy);
 	}
 
@@ -415,10 +396,9 @@
 			target: player,
 			bulletsGroup: bullets,
 			bulletCollisionGroup: collisionGroups.bulletsCollisionGroup,
-			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletcollisionGroup', 'enemiesCollisionGroup')),
+			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletsCollisionGroup', 'enemiesCollisionGroup')),
 			difficulty: 1
 		}));
-		// enemyAis.push(new MovementAi(enemy, player, 500));
 	}
 
 	function createLevelGrid() {
@@ -523,17 +503,31 @@
 	}
 
 	function update() {
+
+		// player firing
 		if (cursors.left.isDown) {
-			player.body.velocity.x += -5;
+			playerFire('left');
 		} else if (cursors.right.isDown) {
+			playerFire('right');
+		} else if (cursors.up.isDown) {
+			playerFire('top');
+		} else if (cursors.down.isDown) {
+			playerFire('bottom');
+		}
+
+		//player movement
+		if (keyboardControls['w'].isDown) {
+			player.body.velocity.y += -5;
+		} else if (keyboardControls['s'].isDown) {
+			player.body.velocity.y += 5;
+		}
+		if (keyboardControls['a'].isDown) {
+			player.body.velocity.x += -5;
+		} else if (keyboardControls['d'].isDown) {
 			player.body.velocity.x += 5;
 		}
 
-		if (cursors.up.isDown) {
-			player.body.velocity.y += -5;
-		} else if (cursors.down.isDown) {
-			player.body.velocity.y += 5;
-		}
+		//enemy actions
 		_.each(enemyAis, function (ai) {
 			if (ai.move) {
 				ai.move();
@@ -547,6 +541,8 @@
 	function render() {
 		game.debug.cameraInfo(game.camera, 32, 32);
 		game.debug.spriteCoords(player, 32, 475);
+
+		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
 	}
