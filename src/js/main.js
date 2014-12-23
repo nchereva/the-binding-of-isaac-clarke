@@ -215,7 +215,7 @@
 			x: TILES_X,
 			y: TILES_Y,
 			enemies: {
-				count: 6
+				count: 4
 			}
 		});
 		var stoneMask = levelGenerator.newMask({
@@ -236,7 +236,7 @@
 		//creating player
 		createPlayer();
 
-//		createLevel(stoneMask, stones, createStone);
+		createLevel(stoneMask, stones, createStone);
 		createLevel(enemiesMask, enemies, createEnemy);
 	}
 

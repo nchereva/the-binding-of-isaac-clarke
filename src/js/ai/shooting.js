@@ -42,9 +42,9 @@
 			);
 		};
 
-		if (this.immediate) {
-			this.startShooting();
-		}
+		//if (this.immediate) {
+		//	setTimeout(this.startShooting(),500);
+		//}
 
 		this.stopShooting = function stopShooting() {
 			clearTimeout(this.fireRateTimeout);
