@@ -7,13 +7,13 @@
 		this.move = function() {
 			var dx = target.position.x - this.object.position.x;
 			var dy = target.position.y - this.object.position.y;
-			var distance = Phaser.Point.distance(target, this.object, true)
+			var distance = Phaser.Point.distance(target, this.object, true);
 			if(distance == 0) return;
 			var vx = speed * dx / distance;
 			var vy = speed * dy / distance;
 			this.object.body.velocity.x = vx;
 			this.object.body.velocity.y = vy;
-		}
+		};
 		if (this.immediate) {
 			this.move();
 		}
