@@ -54,7 +54,8 @@
 		stones,
 		cursors,
 		levelGrid,
-		keyboardControls = {}, // Those are keyboard buttons. I thought it stands for key item to open doors, lol
+		pad1,
+		keyboardControls = {},
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		fireRate = 2,
@@ -108,6 +109,9 @@
 		window.game = game;
 
 		game.physics.p2.updateBoundsCollisionGroup();
+
+		game.input.gamepad.start();
+		pad1 = game.input.gamepad.pad1;
 
 		cursors = game.input.keyboard.createCursorKeys();
 
@@ -504,26 +508,25 @@
 
 	function update() {
 
-		// player firing
-		if (cursors.left.isDown) {
+		if (cursors.left.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_X)) {
 			playerFire('left');
-		} else if (cursors.right.isDown) {
+		} else if (cursors.right.isDown ||pad1.isDown(Phaser.Gamepad.XBOX360_B)) {
 			playerFire('right');
-		} else if (cursors.up.isDown) {
+		} else if (cursors.up.isDown ||pad1.isDown(Phaser.Gamepad.XBOX360_Y)) {
 			playerFire('top');
-		} else if (cursors.down.isDown) {
+		} else if (cursors.down.isDown ||pad1.isDown(Phaser.Gamepad.XBOX360_A)) {
 			playerFire('bottom');
 		}
 
 		//player movement
-		if (keyboardControls['w'].isDown) {
+		if (keyboardControls['w'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_UP || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.1)) {
 			player.body.velocity.y += -5;
-		} else if (keyboardControls['s'].isDown) {
+		} else if (keyboardControls['s'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1)) {
 			player.body.velocity.y += 5;
 		}
-		if (keyboardControls['a'].isDown) {
+		if (keyboardControls['a'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) < -0.1)) {
 			player.body.velocity.x += -5;
-		} else if (keyboardControls['d'].isDown) {
+		} else if (keyboardControls['d'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) > 0.1)) {
 			player.body.velocity.x += 5;
 		}
 
