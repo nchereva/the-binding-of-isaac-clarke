@@ -75,9 +75,24 @@
 				bullet.body.velocity.y = bulletVelocity.y;
 				bullet.body.setCircle(10);
 				bullet.body.setCollisionGroup(this.bulletCollisionGroup);
+                bullet.body.collides(this.playerCollisionGroup, function (bul, target) {
+					if (bul.sprite.alive && target.sprite.alive) {
+                        bul.sprite.kill();
+                        if(target.sprite.invulnerable == false) {
+                            target.sprite.invulnerable = true;
+                            target.sprite.damage(1);
+                            tween = target.sprite.game.add.tween(target.sprite);
+                            tween.to( { alpha:0.3}, 200, Phaser.Easing.Linear.None(), false, 0, target.sprite.invulnerableDuration / 200-2)
+                                 .to( { alpha:1}, 200, Phaser.Easing.Linear.None()).start();
+                            setTimeout(function() {
+                                target.sprite.invulnerable = false;
+                            },target.sprite.invulnerableDuration);
+                        }
+                    }
+				}, this);
 				bullet.body.collides(this.targetCollisionGroup, function (bul, target) {
 					if (bul.sprite.alive && target.sprite.alive) {
-						bul.sprite.kill();
+                        bul.sprite.kill();
 					}
 				}, this);
 				this.startShooting();

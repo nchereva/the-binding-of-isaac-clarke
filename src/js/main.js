@@ -18,7 +18,7 @@
 		roomOffsetX, roomOffsetY;
 
 	var LevelGenerator = require('./world/LevelGenerator');
-	var levelGenerator = new LevelGenerator();
+	var levelGenerator = new LevelGenerator([123]);
 
 	var roomsMask = [
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -61,6 +61,9 @@
 		fireRate = 2,
 		fireDelay = 1000,
 		fireDisabled = false,
+        invulnerable = false,
+        invulnerableDuration = 1000,
+        playerHealth = 10,
 		doorsHelper;
 
 	var wallDoorless,
@@ -354,6 +357,9 @@
 	var createPlayer = _.once(function () {
 		player = game.add.sprite(roomOffsetX + ROOM_X / 2, roomOffsetY + ROOM_Y / 2, 'player'); // should be added to group and spawned on grid
 		player.anchor.setTo(0.5, 0.5);
+        player.invulnerable = false;
+        player.invulnerableDuration = invulnerableDuration;
+        player.health = playerHealth;
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(collisionGroups.playerCollisionGroup);
 		player.body.collides(_.values(_.omit(collisionGroups, 'playerCollisionGroup')));
@@ -400,7 +406,8 @@
 			target: player,
 			bulletsGroup: bullets,
 			bulletCollisionGroup: collisionGroups.bulletsCollisionGroup,
-			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletsCollisionGroup', 'enemiesCollisionGroup')),
+			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletsCollisionGroup', 'enemiesCollisionGroup', 'playerCollisionGroup')),
+            playerCollisionGroup: collisionGroups['playerCollisionGroup'],
 			difficulty: 1
 		}));
 	}
@@ -548,5 +555,6 @@
 		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
+                game.debug.text(player.health, 33, 14, "#ff0000");
 	}
 })();
