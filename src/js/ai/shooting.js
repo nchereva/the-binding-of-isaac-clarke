@@ -9,6 +9,7 @@
 		immediate: true,
 		fireDisabled: false,
 		difficulty: 1,
+        fireDamage: 1,
 		infelicity: 0.8
 	};
 
@@ -80,10 +81,12 @@
                         bul.sprite.kill();
                         if(target.sprite.invulnerable == false) {
                             target.sprite.invulnerable = true;
-                            target.sprite.damage(1);
-                            tween = target.sprite.game.add.tween(target.sprite);
-                            tween.to( { alpha:0.3}, 200, Phaser.Easing.Linear.None(), false, 0, target.sprite.invulnerableDuration / 200-2)
-                                 .to( { alpha:1}, 200, Phaser.Easing.Linear.None()).start();
+                            target.sprite.damage(this.fireDamage);
+                            var blinkingTime = 200;
+                            target.sprite.game.add.tween(target.sprite)
+                                .to( { alpha:0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0,
+                                    target.sprite.invulnerableDuration / blinkingTime-2)
+                                .to( { alpha:1}, blinkingTime, Phaser.Easing.Linear.None()).start();
                             setTimeout(function() {
                                 target.sprite.invulnerable = false;
                             },target.sprite.invulnerableDuration);

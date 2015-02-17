@@ -18,7 +18,7 @@
 		roomOffsetX, roomOffsetY;
 
 	var LevelGenerator = require('./world/LevelGenerator');
-	var levelGenerator = new LevelGenerator([123]);
+	var levelGenerator = new LevelGenerator();
 
 	var roomsMask = [
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -60,7 +60,6 @@
 		bullets,
 		fireRate = 2,
 		fireDelay = 1000,
-		fireDisabled = false,
         invulnerable = false,
         invulnerableDuration = 1000,
         playerHealth = 10,
@@ -358,13 +357,17 @@
 		player = game.add.sprite(roomOffsetX + ROOM_X / 2, roomOffsetY + ROOM_Y / 2, 'player'); // should be added to group and spawned on grid
 		player.anchor.setTo(0.5, 0.5);
         player.invulnerable = false;
+        player.fireDisabled = false;
         player.invulnerableDuration = invulnerableDuration;
         player.health = playerHealth;
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(collisionGroups.playerCollisionGroup);
 		player.body.collides(_.values(_.omit(collisionGroups, 'playerCollisionGroup')));
 		player.body.fixedRotation = true;
-
+        player.events.onKilled.add(function () {
+            player.fireDisabled=true;
+        });
+        
 		player.events.onOutOfBounds.add(function () {
 			game.camera.follow(player);
 		});
@@ -444,8 +447,8 @@
 
 	function playerFire(direction) {
 
-		if (!fireDisabled) {
-			fireDisabled = true;
+		if (!player.fireDisabled) {
+			player.fireDisabled = true;
 
 			var bullet,
 				bulletPosition = _.clone(player.position),
@@ -500,7 +503,7 @@
 			});
 
 			var fireRateTimeout = setTimeout(function () {
-				fireDisabled = false;
+				player.fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
 	}
@@ -555,6 +558,9 @@
 		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
-                game.debug.text(player.health, 33, 14, "#ff0000");
+        var health_text='';
+        for(var i=0;i<player.health;i++)
+            health_text+='♥';
+        game.debug.text(health_text, 33, 14, "#ff0000");
 	}
 })();
