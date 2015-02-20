@@ -9,9 +9,10 @@
 		immediate: true,
 		fireDisabled: false,
 		difficulty: 1,
-        fireDamage: 1,
+		fireDamage: 1,
 		infelicity: 0.8
 	};
+	var blinkingTime = 200;
 
 	module.exports = function (options) {
 		_.assign(this, _.defaults(_.clone(DEFAULTS), options));
@@ -39,7 +40,7 @@
 			this.fireRateTimeout = setTimeout(function () {
 					this.fireDisabled = false;
 				}.bind(this),
-					this.fireDelay / this.fireRate
+				this.fireDelay / this.fireRate
 			);
 		};
 
@@ -76,26 +77,25 @@
 				bullet.body.velocity.y = bulletVelocity.y;
 				bullet.body.setCircle(10);
 				bullet.body.setCollisionGroup(this.bulletCollisionGroup);
-                bullet.body.collides(this.playerCollisionGroup, function (bul, target) {
+				bullet.body.collides(this.playerCollisionGroup, function (bul, target) {
 					if (bul.sprite.alive && target.sprite.alive) {
-                        bul.sprite.kill();
-                        if(target.sprite.invulnerable == false) {
-                            target.sprite.invulnerable = true;
-                            target.sprite.damage(this.fireDamage);
-                            var blinkingTime = 200;
-                            target.sprite.game.add.tween(target.sprite)
-                                .to( { alpha:0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0,
-                                    target.sprite.invulnerableDuration / blinkingTime-2)
-                                .to( { alpha:1}, blinkingTime, Phaser.Easing.Linear.None()).start();
-                            setTimeout(function() {
-                                target.sprite.invulnerable = false;
-                            },target.sprite.invulnerableDuration);
-                        }
-                    }
+						bul.sprite.kill();
+						if (target.sprite.invulnerable == false) {
+							target.sprite.invulnerable = true;
+							target.sprite.damage(this.fireDamage);
+							target.sprite.game.add.tween(target.sprite)
+								.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0,
+								target.sprite.invulnerableDuration / blinkingTime - 2)
+								.to({alpha: 1}, blinkingTime, Phaser.Easing.Linear.None()).start();
+							setTimeout(function () {
+								target.sprite.invulnerable = false;
+							}, target.sprite.invulnerableDuration);
+						}
+					}
 				}, this);
 				bullet.body.collides(this.targetCollisionGroup, function (bul, target) {
 					if (bul.sprite.alive && target.sprite.alive) {
-                        bul.sprite.kill();
+						bul.sprite.kill();
 					}
 				}, this);
 				this.startShooting();
