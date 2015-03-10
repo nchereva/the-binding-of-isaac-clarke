@@ -37,6 +37,8 @@
 		render: render
 	});
 
+	game.onPlayerDamage = new Phaser.Signal();
+
 	var collisionGroups = {
 		playerCollisionGroup: {},
 		enemiesCollisionGroup: {},
@@ -63,6 +65,7 @@
 		invulnerable = false,
 		invulnerableDuration = 1000,
 		playerHealth = 10,
+		playerHealthText = '',
 		doorsHelper;
 
 	var wallDoorless,
@@ -372,8 +375,17 @@
 			game.camera.follow(player);
 		});
 
+		for (var i = 0; i < player.health; i++) {
+			playerHealthText += '♥';
+		}
+		game.onPlayerDamage.add(playerHealthReduce, this);
+
 		game.camera.follow(player);
 	});
+
+	function playerHealthReduce() {
+		playerHealthText = playerHealthText.slice(0,player.health-1);
+	}
 
 	function createLevel(mask, group, constructor) {
 		if (!_.isArray(mask)) {
@@ -558,9 +570,6 @@
 		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
-		var health_text = '';
-		for (var i = 0; i < player.health; i++)
-			health_text += '♥';
-		game.debug.text(health_text, 33, 14, "#ff0000");
+		game.debug.text(playerHealthText, 33, 14, "#ff0000");
 	}
 })();
