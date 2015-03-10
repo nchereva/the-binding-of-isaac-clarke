@@ -83,7 +83,7 @@
 						if (target.sprite.invulnerable == false) {
 							target.sprite.invulnerable = true;
 							target.sprite.damage(this.fireDamage);
-							target.sprite.game.onPlayerDamage.dispatch(this); // onDamage event
+							target.sprite.game.onPlayerDamage.dispatch(); // onDamage event
 							target.sprite.game.add.tween(target.sprite)
 								.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0,
 								target.sprite.invulnerableDuration / blinkingTime - 2)

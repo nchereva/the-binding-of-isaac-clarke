@@ -378,7 +378,7 @@
 		for (var i = 0; i < player.health; i++) {
 			playerHealthText += '♥';
 		}
-		game.onPlayerDamage.add(playerHealthReduce, this);
+		game.onPlayerDamage.add(playerHealthReduce);
 
 		game.camera.follow(player);
 	});
