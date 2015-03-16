@@ -9,10 +9,11 @@
 		immediate: true,
 		fireDisabled: false,
 		difficulty: 1,
-		fireDamage: 1,
+		bulletDamage: 1,
 		infelicity: 0.8
 	};
 	var blinkingTime = 200;
+	var playerBlinkingTween;
 
 	module.exports = function (options) {
 		_.assign(this, _.defaults(_.clone(DEFAULTS), options));
@@ -40,13 +41,9 @@
 			this.fireRateTimeout = setTimeout(function () {
 					this.fireDisabled = false;
 				}.bind(this),
-				this.fireDelay / this.fireRate
+					this.fireDelay / this.fireRate
 			);
 		};
-
-		//if (this.immediate) {
-		//	setTimeout(this.startShooting(),500);
-		//}
 
 		this.stopShooting = function stopShooting() {
 			clearTimeout(this.fireRateTimeout);
@@ -82,15 +79,14 @@
 						bul.sprite.kill();
 						if (target.sprite.invulnerable == false) {
 							target.sprite.invulnerable = true;
-							target.sprite.damage(this.fireDamage);
+							target.sprite.damage(this.bulletDamage);
 							target.sprite.game.onPlayerDamage.dispatch(); // onDamage event
-							target.sprite.game.add.tween(target.sprite)
-								.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0,
-								target.sprite.invulnerableDuration / blinkingTime - 2)
-								.to({alpha: 1}, blinkingTime, Phaser.Easing.Linear.None()).start();
-							setTimeout(function () {
+
+							playerBlinkingTween = target.sprite.game.add.tween(target.sprite);
+							playerBlinkingTween.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0, target.sprite.invulnerableDuration / blinkingTime - 2).to({alpha: 1}, blinkingTime, Phaser.Easing.Linear.None()).start();
+							playerBlinkingTween.onComplete.add(function () {
 								target.sprite.invulnerable = false;
-							}, target.sprite.invulnerableDuration);
+							});
 						}
 					}
 				}, this);

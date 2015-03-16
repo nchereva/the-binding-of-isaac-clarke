@@ -18,15 +18,15 @@
 		roomOffsetX, roomOffsetY;
 
 	var LevelGenerator = require('./world/LevelGenerator');
-	var levelGenerator = new LevelGenerator();
+	var levelGenerator = new LevelGenerator([1]);
 
 	var roomsMask = [
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	];
 
@@ -36,8 +36,6 @@
 		update: update,
 		render: render
 	});
-
-	game.onPlayerDamage = new Phaser.Signal();
 
 	var collisionGroups = {
 		playerCollisionGroup: {},
@@ -60,6 +58,7 @@
 		keyboardControls = {},
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
+		bulletDamage = 1,
 		fireRate = 2,
 		fireDelay = 1000,
 		invulnerable = false,
@@ -76,6 +75,8 @@
 		wall_corner_top_right,
 		wall_corner_bottom_left,
 		wall_corner_bottom_right;
+
+	game.onPlayerDamage = new Phaser.Signal();
 
 	function preload() {
 
@@ -383,8 +384,12 @@
 		game.camera.follow(player);
 	});
 
-	function playerHealthReduce() {
-		playerHealthText = playerHealthText.slice(0,player.health-1);
+	function playerHealthReduce(damage) {
+		if(!damage) {
+			damage = bulletDamage;
+		}
+		playerHealth -= damage;
+		playerHealthText = playerHealthText.slice(0, (player.health - damage) + 1 );
 	}
 
 	function createLevel(mask, group, constructor) {
@@ -423,6 +428,7 @@
 			bulletCollisionGroup: collisionGroups.bulletsCollisionGroup,
 			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletsCollisionGroup', 'enemiesCollisionGroup', 'playerCollisionGroup')),
 			playerCollisionGroup: collisionGroups['playerCollisionGroup'],
+			bulletDamage: bulletDamage,
 			difficulty: 1
 		}));
 	}
@@ -570,6 +576,6 @@
 		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
-		game.debug.text(playerHealthText, 33, 14, "#ff0000");
+		game.debug.text(playerHealthText + ": " + playerHealth, 33, 14, "#ff0000");
 	}
 })();
