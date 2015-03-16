@@ -15,10 +15,12 @@
 		ROOM_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
 		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
 		DOOR_SIZE = 2 * TILE_SIZE,
+		DEFAULT_SEED = ['defaultSeed'],
 		roomOffsetX, roomOffsetY;
 
+	var generatorSeed = DEFAULT_SEED;
 	var LevelGenerator = require('./world/LevelGenerator');
-	var levelGenerator = new LevelGenerator([1]);
+	var levelGenerator = new LevelGenerator(generatorSeed);
 
 	var roomsMask = [
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -385,9 +387,6 @@
 	});
 
 	function playerHealthReduce(damage) {
-		if(!damage) {
-			damage = bulletDamage;
-		}
 		playerHealth -= damage;
 		playerHealthText = playerHealthText.slice(0, (player.health - damage) + 1 );
 	}
