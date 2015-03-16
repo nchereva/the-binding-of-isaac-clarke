@@ -15,18 +15,20 @@
 		ROOM_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
 		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
 		DOOR_SIZE = 2 * TILE_SIZE,
+		DEFAULT_SEED = ['defaultSeed'],
 		roomOffsetX, roomOffsetY;
 
+	var generatorSeed = DEFAULT_SEED;
 	var LevelGenerator = require('./world/LevelGenerator');
-	var levelGenerator = new LevelGenerator();
+	var levelGenerator = new LevelGenerator(generatorSeed);
 
 	var roomsMask = [
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-		[0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
-		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
 		[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 	];
 
@@ -58,9 +60,13 @@
 		keyboardControls = {},
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
+		bulletDamage = 1,
 		fireRate = 2,
 		fireDelay = 1000,
-		fireDisabled = false,
+		invulnerable = false,
+		invulnerableDuration = 1000,
+		playerHealth = 10,
+		playerHealthText = '',
 		doorsHelper;
 
 	var wallDoorless,
@@ -71,6 +77,8 @@
 		wall_corner_top_right,
 		wall_corner_bottom_left,
 		wall_corner_bottom_right;
+
+	game.onPlayerDamage = new Phaser.Signal();
 
 	function preload() {
 
@@ -354,17 +362,34 @@
 	var createPlayer = _.once(function () {
 		player = game.add.sprite(roomOffsetX + ROOM_X / 2, roomOffsetY + ROOM_Y / 2, 'player'); // should be added to group and spawned on grid
 		player.anchor.setTo(0.5, 0.5);
+		player.invulnerable = false;
+		player.fireDisabled = false;
+		player.invulnerableDuration = invulnerableDuration;
+		player.health = playerHealth;
 		game.physics.p2.enable(player);
 		player.body.setCollisionGroup(collisionGroups.playerCollisionGroup);
 		player.body.collides(_.values(_.omit(collisionGroups, 'playerCollisionGroup')));
 		player.body.fixedRotation = true;
+		player.events.onKilled.add(function () {
+			player.fireDisabled = true;
+		});
 
 		player.events.onOutOfBounds.add(function () {
 			game.camera.follow(player);
 		});
 
+		for (var i = 0; i < player.health; i++) {
+			playerHealthText += '♥';
+		}
+		game.onPlayerDamage.add(playerHealthReduce);
+
 		game.camera.follow(player);
 	});
+
+	function playerHealthReduce(damage) {
+		playerHealth -= damage;
+		playerHealthText = playerHealthText.slice(0, (player.health - damage) + 1 );
+	}
 
 	function createLevel(mask, group, constructor) {
 		if (!_.isArray(mask)) {
@@ -400,7 +425,9 @@
 			target: player,
 			bulletsGroup: bullets,
 			bulletCollisionGroup: collisionGroups.bulletsCollisionGroup,
-			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletsCollisionGroup', 'enemiesCollisionGroup')),
+			targetCollisionGroup: _.values(_.omit(collisionGroups, 'bulletsCollisionGroup', 'enemiesCollisionGroup', 'playerCollisionGroup')),
+			playerCollisionGroup: collisionGroups['playerCollisionGroup'],
+			bulletDamage: bulletDamage,
 			difficulty: 1
 		}));
 	}
@@ -437,8 +464,8 @@
 
 	function playerFire(direction) {
 
-		if (!fireDisabled) {
-			fireDisabled = true;
+		if (!player.fireDisabled) {
+			player.fireDisabled = true;
 
 			var bullet,
 				bulletPosition = _.clone(player.position),
@@ -493,7 +520,7 @@
 			});
 
 			var fireRateTimeout = setTimeout(function () {
-				fireDisabled = false;
+				player.fireDisabled = false;
 			}, fireDelay / fireRate);
 		}
 	}
@@ -510,11 +537,11 @@
 
 		if (cursors.left.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_X)) {
 			playerFire('left');
-		} else if (cursors.right.isDown ||pad1.isDown(Phaser.Gamepad.XBOX360_B)) {
+		} else if (cursors.right.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_B)) {
 			playerFire('right');
-		} else if (cursors.up.isDown ||pad1.isDown(Phaser.Gamepad.XBOX360_Y)) {
+		} else if (cursors.up.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_Y)) {
 			playerFire('top');
-		} else if (cursors.down.isDown ||pad1.isDown(Phaser.Gamepad.XBOX360_A)) {
+		} else if (cursors.down.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_A)) {
 			playerFire('bottom');
 		}
 
@@ -548,5 +575,6 @@
 		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
+		game.debug.text(playerHealthText + ": " + playerHealth, 33, 14, "#ff0000");
 	}
 })();
