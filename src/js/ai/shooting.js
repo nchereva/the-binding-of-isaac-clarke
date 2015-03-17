@@ -9,8 +9,11 @@
 		immediate: true,
 		fireDisabled: false,
 		difficulty: 1,
+		bulletDamage: 1,
 		infelicity: 0.8
 	};
+	var blinkingTime = 200;
+	var playerBlinkingTween;
 
 	module.exports = function (options) {
 		_.assign(this, _.defaults(_.clone(DEFAULTS), options));
@@ -42,10 +45,6 @@
 			);
 		};
 
-		//if (this.immediate) {
-		//	setTimeout(this.startShooting(),500);
-		//}
-
 		this.stopShooting = function stopShooting() {
 			clearTimeout(this.fireRateTimeout);
 		};
@@ -75,6 +74,22 @@
 				bullet.body.velocity.y = bulletVelocity.y;
 				bullet.body.setCircle(10);
 				bullet.body.setCollisionGroup(this.bulletCollisionGroup);
+				bullet.body.collides(this.playerCollisionGroup, function (bul, target) {
+					if (bul.sprite.alive && target.sprite.alive) {
+						bul.sprite.kill();
+						if (target.sprite.invulnerable == false) {
+							target.sprite.invulnerable = true;
+							target.sprite.damage(this.bulletDamage);
+							target.sprite.game.onPlayerDamage.dispatch(this.bulletDamage); // onDamage event
+
+							playerBlinkingTween = target.sprite.game.add.tween(target.sprite);
+							playerBlinkingTween.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0, target.sprite.invulnerableDuration / blinkingTime - 2).to({alpha: 1}, blinkingTime, Phaser.Easing.Linear.None()).start();
+							playerBlinkingTween.onComplete.add(function () {
+								target.sprite.invulnerable = false;
+							});
+						}
+					}
+				}, this);
 				bullet.body.collides(this.targetCollisionGroup, function (bul, target) {
 					if (bul.sprite.alive && target.sprite.alive) {
 						bul.sprite.kill();
