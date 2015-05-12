@@ -84,6 +84,7 @@
 
 		game.load.image('wallCorner', 'assets/sprites/wall_corner_1.png');
 		game.load.image('wallPattern', 'assets/sprites/wall_pattern_1.png');
+		game.load.image('floorPattern', 'assets/sprites/floor.png');
 		game.load.image('player', 'assets/sprites/isaac.png');
 		game.load.image('enemy', 'assets/sprites/enemy.png');
 		game.load.image('bullet', 'assets/sprites/bullet-red.png');
@@ -133,26 +134,9 @@
 			toggleFullscreen();
 		});
 
-		// Should those be created by function?
-		bullets = game.add.group();
-		bullets.enableBody = true;
-		bullets.physicsBodyType = Phaser.Physics.P2JS;
-
-		enemies = game.add.group();
-		enemies.enableBody = true;
-		enemies.physicsBodyType = Phaser.Physics.P2JS;
-
-		stones = game.add.group();
-		stones.enableBody = true;
-		stones.physicsBodyType = Phaser.Physics.P2JS;
-
-		doors = game.add.group();
-		doors.enableBody = true;
-		doors.physicsBodyType = Phaser.Physics.P2JS;
-
 //		doorsHelper = new Doors(game, TILES_X, TILES_Y);
 
-		createWorld(roomsMask, createRoom);
+		createWorld(roomsMask, createRoom, spawnInterier);
 
 		game.camera.focusOnXY(player.x, player.y);
 
@@ -207,7 +191,7 @@
 		lastUsedDoor = door._id;
 	}
 
-	function createWorld(roomMask, roomConstructor) {
+	function createWorld(roomMask, roomConstructor, spawnConstructor) {
 		if (!_.isArray(roomMask)) {
 			return;
 		}
@@ -220,9 +204,38 @@
 				roomConstructor(x * ROOM_X, y * ROOM_Y);
 			});
 		});
+
+		// Should those be created by function?
+		bullets = game.add.group();
+		bullets.enableBody = true;
+		bullets.physicsBodyType = Phaser.Physics.P2JS;
+
+		enemies = game.add.group();
+		enemies.enableBody = true;
+		enemies.physicsBodyType = Phaser.Physics.P2JS;
+
+		stones = game.add.group();
+		stones.enableBody = true;
+		stones.physicsBodyType = Phaser.Physics.P2JS;
+
+		doors = game.add.group();
+		doors.enableBody = true;
+		doors.physicsBodyType = Phaser.Physics.P2JS;
+
+		_.forIn(roomMask, function (row, y) {
+			_.forIn(row, function (item, x) {
+				if (!item) {
+					return;
+				}
+				spawnConstructor(x * ROOM_X, y * ROOM_Y);
+			});
+		});
 	}
 
-	function createRoom(x, y, orientation) {
+	function spawnInterier(x, y) {
+		roomOffsetX = x;
+		roomOffsetY = y;
+
 		var enemiesMask = levelGenerator.newMask({
 			x: TILES_X,
 			y: TILES_Y,
@@ -238,18 +251,18 @@
 			}
 		});
 
-		roomOffsetX = x;
-		roomOffsetY = y;
-
-		game.add.text(x, y, _.uniqueId('_room'));
-
-		createWalls(true, true, true, true); // top, right, bottom, left
-
 		//creating player
 		createPlayer();
 
 		createLevel(stoneMask, stones, createStone);
 		createLevel(enemiesMask, enemies, createEnemy);
+	}
+
+	function createRoom(x, y, orientation) {
+		roomOffsetX = x;
+		roomOffsetY = y;
+
+		createWalls(true, true, true, true); // top, right, bottom, left
 	}
 
 	function createCorners() {
@@ -281,6 +294,8 @@
 			wallPieceWidthY = floorHeight / 2 - DOOR_SIZE / 2,
 			wallHeight = WALL_SIZE,
 			x1, x2, y1, y2;
+
+		var floor = game.add.tileSprite(wallStartX, wallStartY, TILES_X * TILE_SIZE, TILES_Y * TILE_SIZE, 'floorPattern');
 
 		if (top) {
 			x1 = wallStartX + wallPieceWidthX / 2;
@@ -388,7 +403,7 @@
 
 	function playerHealthReduce(damage) {
 		playerHealth -= damage;
-		playerHealthText = playerHealthText.slice(0, (player.health - damage) + 1 );
+		playerHealthText = playerHealthText.slice(0, -(damage) );
 	}
 
 	function createLevel(mask, group, constructor) {
@@ -510,7 +525,7 @@
 					bul.sprite.kill();
 					en.sprite.kill();
 				}
-				console.log('collision')
+				console.log('collision');
 			}, this);
 
 			bullet.body.collides([collisionGroups.stonesCollisionGroup, collisionGroups.doorsCollisionGroup, collisionGroups.wallsCollisionGroup], function (bul) {
