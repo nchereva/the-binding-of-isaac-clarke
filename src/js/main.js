@@ -256,7 +256,6 @@
 
 		createLevel(stoneMask, stones, createStone);
 		createLevel(enemiesMask, enemies, createEnemy);
-		console.log('Interier ' + x + ' spawned');
 	}
 
 	function createRoom(x, y, orientation) {
@@ -264,12 +263,6 @@
 		roomOffsetY = y;
 
 		createWalls(true, true, true, true); // top, right, bottom, left
-		console.log('Room ' + x + ' created');
-		//creating player
-//		createPlayer();
-//
-//		createLevel(stoneMask, stones, createStone);
-//		createLevel(enemiesMask, enemies, createEnemy);
 	}
 
 	function createCorners() {
@@ -410,7 +403,7 @@
 
 	function playerHealthReduce(damage) {
 		playerHealth -= damage;
-		playerHealthText = playerHealthText.slice(0, (player.health - damage) + 1 );
+		playerHealthText = playerHealthText.slice(0, -(damage) );
 	}
 
 	function createLevel(mask, group, constructor) {
@@ -532,7 +525,7 @@
 					bul.sprite.kill();
 					en.sprite.kill();
 				}
-				console.log('collision')
+				console.log('collision');
 			}, this);
 
 			bullet.body.collides([collisionGroups.stonesCollisionGroup, collisionGroups.doorsCollisionGroup, collisionGroups.wallsCollisionGroup], function (bul) {
