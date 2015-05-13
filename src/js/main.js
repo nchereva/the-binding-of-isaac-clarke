@@ -15,8 +15,7 @@
 		ROOM_X = TILES_X * TILE_SIZE + 2 * WALL_SIZE,
 		ROOM_Y = TILES_Y * TILE_SIZE + 2 * WALL_SIZE,
 		DOOR_SIZE = 2 * TILE_SIZE,
-		DEFAULT_SEED = ['defaultSeed'],
-		roomOffsetX, roomOffsetY;
+		DEFAULT_SEED = ['defaultSeed'];
 
 	var generatorSeed = DEFAULT_SEED;
 	var LevelGenerator = require('./world/LevelGenerator');
@@ -39,49 +38,64 @@
 		render: render
 	});
 
+	var physics;
+
 	var collisionGroups = {
 		playerCollisionGroup: {},
 		enemiesCollisionGroup: {},
 		bulletsCollisionGroup: {},
 		stonesCollisionGroup: {},
-		doorsCollisionGroup: {}
+		doorsCollisionGroup: {},
+		wallsCollisionGroup: {}
 	};
 
 	var player,
+		playerHealth = 10,
+		playerHealthText = '',
+
 		enemies,
 		enemyAis = [],
-		door,
-		doors,
-		lastUsedDoor,
-		stones,
-		cursors,
-		levelGrid,
-		pad1,
-		keyboardControls = {},
+
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bulletDamage = 1,
 		fireRate = 2,
 		fireDelay = 1000,
-		invulnerable = false,
 		invulnerableDuration = 1000,
-		playerHealth = 10,
-		playerHealthText = '',
-		doorsHelper;
 
-	var wallDoorless,
+		stones,
+		cursors,
+		levelGrid,
+
+		pad1,
+		keyboard,
+		keyboardControls = {},
+
+		roomOffsetX,
+		roomOffsetY,
+
+		wallDoorless,
 		wallPiece1,
-		wallPiece2;
+		wallPiece2,
 
-	var wall_corner_top_left,
+		wall_corner_top_left,
 		wall_corner_top_right,
 		wall_corner_bottom_left,
-		wall_corner_bottom_right;
+		wall_corner_bottom_right,
 
+		door,
+		doors,
+		lastUsedDoor;
+
+	/**
+	 *   Phaser signals aka custom events
+	 */
 	game.onPlayerDamage = new Phaser.Signal();
 
 	function preload() {
-
+		/**
+		 *  Preloading game asssets
+		 */
 		game.load.image('wallCorner', 'assets/sprites/wall_corner_1.png');
 		game.load.image('wallPattern', 'assets/sprites/wall_pattern_1.png');
 		game.load.image('floorPattern', 'assets/sprites/floor.png');
@@ -95,52 +109,57 @@
 	}
 
 	function create() {
+		/**
+		 *
+		 */
 
 		createLevelGrid();
 
-		//basic game settings
+		window.game = game;
+
+		/**
+		 *  Basic game settings
+		 */
 		game.stage.backgroundColor = '#0E74AF';
 		game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
 		game.world.setBounds(0, 0, ROOM_X * roomsMask[0].length, ROOM_Y * roomsMask.length);
+
+		/**
+		 *  Enabling game physics
+		 */
 		game.physics.startSystem(Phaser.Physics.P2JS);
-		game.physics.p2.setImpactEvents(true);
+		physics = game.physics.p2;
+		physics.setImpactEvents(true);
 
-		//collision groups
-		collisionGroups.playerCollisionGroup = game.physics.p2.createCollisionGroup();
-		collisionGroups.enemiesCollisionGroup = game.physics.p2.createCollisionGroup();
-		collisionGroups.bulletsCollisionGroup = game.physics.p2.createCollisionGroup();
-		collisionGroups.stonesCollisionGroup = game.physics.p2.createCollisionGroup();
-		collisionGroups.doorsCollisionGroup = game.physics.p2.createCollisionGroup();
-		collisionGroups.wallsCollisionGroup = game.physics.p2.createCollisionGroup();
+		_.forIn(collisionGroups,function(value, key){
+			collisionGroups[key] = physics.createCollisionGroup();
+		});
+		physics.updateBoundsCollisionGroup();
 
-		// game.world.setBounds(0, 0, ROOM_X, ROOM_Y);
-
-		window.game = game;
-
-		game.physics.p2.updateBoundsCollisionGroup();
-
+		/**
+		 *  Game input controls
+		 */
 		game.input.gamepad.start();
 		pad1 = game.input.gamepad.pad1;
+		keyboard = game.input.keyboard;
+		cursors = keyboard.createCursorKeys();
 
-		cursors = game.input.keyboard.createCursorKeys();
-
-		keyboardControls['w'] = game.input.keyboard.addKey(Phaser.Keyboard.W);
-		keyboardControls['a'] = game.input.keyboard.addKey(Phaser.Keyboard.A);
-		keyboardControls['s'] = game.input.keyboard.addKey(Phaser.Keyboard.S);
-		keyboardControls['d'] = game.input.keyboard.addKey(Phaser.Keyboard.D);
-		keyboardControls['f'] = game.input.keyboard.addKey(Phaser.Keyboard.F);
+		keyboardControls['w'] = keyboard.addKey(Phaser.Keyboard.W);
+		keyboardControls['a'] = keyboard.addKey(Phaser.Keyboard.A);
+		keyboardControls['s'] = keyboard.addKey(Phaser.Keyboard.S);
+		keyboardControls['d'] = keyboard.addKey(Phaser.Keyboard.D);
+		keyboardControls['f'] = keyboard.addKey(Phaser.Keyboard.F);
 
 		keyboardControls['f'].onDown.add(function () {
 			toggleFullscreen();
 		});
 
-//		doorsHelper = new Doors(game, TILES_X, TILES_Y);
-
 		createWorld(roomsMask, createRoom, spawnInterier);
 
-		game.camera.focusOnXY(player.x, player.y);
-
+		//game.camera.focusOnXY(player.x, player.y);
 	}
+
+
 
 	function enableWallCollision(wallTileSprite) {
 		wallTileSprite.enableBody = true;
@@ -402,8 +421,17 @@
 	});
 
 	function playerHealthReduce(damage) {
-		playerHealth -= damage;
-		playerHealthText = playerHealthText.slice(0, -(damage) );
+		/**
+		 * @method playerHealthReduce
+		 * @param {number} damage - Damage recieved by player.
+		 */
+		if (playerHealth <= damage) {
+			// TODO: Death code here
+			playerHealth = 0;
+			playerHealthText = "";
+		} else {
+			playerHealthText = playerHealthText.slice(0, -(damage));
+		}
 	}
 
 	function createLevel(mask, group, constructor) {
@@ -452,7 +480,6 @@
 		for (var i = 0; i < TILES_X; i++) {
 			levelGrid[i] = [];
 			for (var j = 0; j < TILES_Y; j++) {
-//				levelGrid[i][j] = [GRID_START + i * TILE_SIZE, GRID_START + j * TILE_SIZE];
 				levelGrid[i][j] = {
 					x: GRID_START + i * TILE_SIZE,
 					y: GRID_START + j * TILE_SIZE
@@ -478,40 +505,45 @@
 	}
 
 	function playerFire(direction) {
+		/**
+		 * @method playerFire
+		 * @param {string} direction - Direction to shoot.
+		 */
 
 		if (!player.fireDisabled) {
 			player.fireDisabled = true;
 
-			var bullet,
+			var playerVelocity = player.body.velocity,
+				bullet,
 				bulletPosition = _.clone(player.position),
 				bulletVelocity = {
-					x: player.body.velocity.x,
-					y: player.body.velocity.y
+					x: playerVelocity.x,
+					y: playerVelocity.y
 				};
 
 			switch (direction) {
 				case ('left'):
 					bulletPosition.x -= 30;
 					bulletVelocity.x += -300;
-					player.body.velocity.x += 200;
+					playerVelocity.x += 200;
 					break;
 				case ('right'):
 					bulletPosition.x += 30;
 					bulletVelocity.x += 300;
-					player.body.velocity.x += -200;
+					playerVelocity.x += -200;
 					break;
 				case ('top'):
 					bulletPosition.y -= 30;
 					bulletVelocity.y += -300;
-					player.body.velocity.y += 200;
+					playerVelocity.y += 200;
 					break;
 				case ('bottom'):
 					bulletPosition.y += 30;
 					bulletVelocity.y += 300;
-					player.body.velocity.y += -200;
+					playerVelocity.y += -200;
 					break;
 				default:
-					console.log('No playerFire direction');
+					console.log('playerFire(): Wrong playerFire direction passed');
 					break;
 			}
 
@@ -549,6 +581,9 @@
 	}
 
 	function update() {
+		/**
+		 *  Called 60 times per second.
+		 */
 
 		if (cursors.left.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_X)) {
 			playerFire('left');
@@ -584,12 +619,17 @@
 	}
 
 	function render() {
+		/**
+		 *  Additional debugging info rendering
+		 */
 		game.debug.cameraInfo(game.camera, 32, 32);
 		game.debug.spriteCoords(player, 32, 475);
 
 		// fps
 		game.time.advancedTiming = true;
 		game.debug.text(game.time.fps || '--', 2, 14, "#00ff00");
+
+		// TODO: Player health functionality
 		game.debug.text(playerHealthText + ": " + playerHealth, 33, 14, "#ff0000");
 	}
 })();
