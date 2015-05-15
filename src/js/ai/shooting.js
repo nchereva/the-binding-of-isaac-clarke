@@ -83,7 +83,10 @@
 							target.sprite.game.onPlayerDamage.dispatch(this.bulletDamage); // onDamage event
 
 							playerBlinkingTween = target.sprite.game.add.tween(target.sprite);
-							playerBlinkingTween.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0, target.sprite.invulnerableDuration / blinkingTime - 2).to({alpha: 1}, blinkingTime, Phaser.Easing.Linear.None()).start();
+							playerBlinkingTween
+								.to({alpha: 0.3}, blinkingTime, Phaser.Easing.Linear.None(), false, 0, target.sprite.invulnerableDuration / blinkingTime - 2)
+								.to({alpha: 1}, blinkingTime, Phaser.Easing.Linear.None())
+								.start();
 							playerBlinkingTween.onComplete.add(function () {
 								target.sprite.invulnerable = false;
 							});

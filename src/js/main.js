@@ -59,8 +59,8 @@
 //		Bullet = require('./bullet/Bullet.js'),
 		bullets,
 		bulletDamage = 1,
-		fireRate = 2,
-		fireDelay = 1000,
+		fireRate = 2, // shots per second
+		fireDelay = 1000,   // one second
 		invulnerableDuration = 1000,
 
 		stones,
@@ -430,6 +430,7 @@
 			playerHealth = 0;
 			playerHealthText = "";
 		} else {
+			playerHealth -= damage;
 			playerHealthText = playerHealthText.slice(0, -(damage));
 		}
 	}
