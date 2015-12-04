@@ -3,6 +3,7 @@
 
 	var _ = require('lodash');
 	var MovementAi = require('./ai/movement');
+	var InputControls = require('./inputControls');
 	var ShootAi = require('./ai/shooting');
 //	var Doors = require('./world/Doors');
 //	var DOOR_DIRECTIONS = Doors.DOOR_DIRECTIONS;
@@ -50,7 +51,7 @@
 	};
 
 	var player,
-		playerHealth = 10,
+		playerHealth = 3,
 		playerHealthText = '',
 
 		enemies,
@@ -60,7 +61,7 @@
 		bullets,
 		bulletDamage = 1,
 		fireRate = 2, // shots per second
-		fireDelay = 1000,   // one second
+		fireDelay = 1000,   // one secondawa
 		invulnerableDuration = 1000,
 
 		stones,
@@ -69,7 +70,7 @@
 
 		pad1,
 		keyboard,
-		keyboardControls = {},
+		inputControls,
 
 		roomOffsetX,
 		roomOffsetY,
@@ -131,7 +132,7 @@
 		physics = game.physics.p2;
 		physics.setImpactEvents(true);
 
-		_.forIn(collisionGroups,function(value, key){
+		_.forIn(collisionGroups, function (value, key) {
 			collisionGroups[key] = physics.createCollisionGroup();
 		});
 		physics.updateBoundsCollisionGroup();
@@ -144,21 +145,10 @@
 		keyboard = game.input.keyboard;
 		cursors = keyboard.createCursorKeys();
 
-		keyboardControls['w'] = keyboard.addKey(Phaser.Keyboard.W);
-		keyboardControls['a'] = keyboard.addKey(Phaser.Keyboard.A);
-		keyboardControls['s'] = keyboard.addKey(Phaser.Keyboard.S);
-		keyboardControls['d'] = keyboard.addKey(Phaser.Keyboard.D);
-		keyboardControls['f'] = keyboard.addKey(Phaser.Keyboard.F);
-
-		keyboardControls['f'].onDown.add(function () {
-			toggleFullscreen();
-		});
-
 		createWorld(roomsMask, createRoom, spawnInterier);
 
-		//game.camera.focusOnXY(player.x, player.y);
+		game.camera.focusOnXY(player.x, player.y);
 	}
-
 
 
 	function enableWallCollision(wallTileSprite) {
@@ -184,27 +174,36 @@
 	}
 
 	function doorsCollisionHandler(door, player) {
-		console.log(door);
+
+		var cameraX = game.camera.x,
+			cameraY = game.camera.y,
+			cameraW = game.camera.width,
+			cameraH = game.camera.height;
+
 		if (lastUsedDoor === door._id) {
 			return;
 		}
+
 		player.setZeroVelocity();
+
+		debugger;
+
 		switch (door._direction) {
 			case ('top'):
 				player.y -= 160;
-				game.camera.focusOnXY(game.camera.x + (game.heigth * 0.5), game.camera.y - (game.width * 0.5));
+				game.camera.setPosition(cameraX, cameraY - cameraH);
 				break;
 			case ('bottom'):
 				player.y += 160;
-				game.camera.focusOnXY(game.camera.x + (game.heigth * 0.5), game.camera.y + (game.width * 1.5));
+				game.camera.setPosition(cameraX, cameraY + cameraH);
 				break;
 			case ('left'):
 				player.x -= 160;
-				game.camera.focusOnXY(game.camera.x - (game.heigth * 1.5), game.camera.y + (game.width * 0.5));
+				game.camera.setPosition(cameraX - cameraW, cameraY);
 				break;
 			case ('right'):
 				player.x += 160;
-				game.camera.focusOnXY(game.camera.x + (game.heigth * 1.5), game.camera.y + (game.width * 0.5));
+				game.camera.setPosition(cameraX + cameraW, cameraY);
 				break;
 		}
 		lastUsedDoor = door._id;
@@ -409,7 +408,7 @@
 		});
 
 		player.events.onOutOfBounds.add(function () {
-			game.camera.follow(player);
+			//game.camera.follow(player);
 		});
 
 		for (var i = 0; i < player.health; i++) {
@@ -417,16 +416,21 @@
 		}
 		game.onPlayerDamage.add(playerHealthReduce);
 
-		game.camera.follow(player);
+		inputControls = new InputControls({
+			game: game,
+			player: player
+		})
 	});
 
 	function playerHealthReduce(damage) {
 		/**
 		 * @method playerHealthReduce
-		 * @param {number} damage - Damage recieved by player.
+		 * @param {number} damage - Damage received by player.
 		 */
 		if (playerHealth <= damage) {
+
 			// TODO: Death code here
+
 			playerHealth = 0;
 			playerHealthText = "";
 		} else {
@@ -573,40 +577,23 @@
 		}
 	}
 
-	function toggleFullscreen() {
-		if (game.scale.isFullScreen) {
-			game.scale.stopFullScreen();
-		} else {
-			game.scale.startFullScreen(false); // false = retain pixel art, true = smooth art
-		}
-	}
-
 	function update() {
 		/**
 		 *  Called 60 times per second.
 		 */
+		var gamepad = Phaser.Gamepad;
 
-		if (cursors.left.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_X)) {
+		if (cursors.left.isDown || pad1.isDown(gamepad.XBOX360_X)) {
 			playerFire('left');
-		} else if (cursors.right.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_B)) {
+		} else if (cursors.right.isDown || pad1.isDown(gamepad.XBOX360_B)) {
 			playerFire('right');
-		} else if (cursors.up.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_Y)) {
+		} else if (cursors.up.isDown || pad1.isDown(gamepad.XBOX360_Y)) {
 			playerFire('top');
-		} else if (cursors.down.isDown || pad1.isDown(Phaser.Gamepad.XBOX360_A)) {
+		} else if (cursors.down.isDown || pad1.isDown(gamepad.XBOX360_A)) {
 			playerFire('bottom');
 		}
 
-		//player movement
-		if (keyboardControls['w'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_UP || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) < -0.1)) {
-			player.body.velocity.y += -5;
-		} else if (keyboardControls['s'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_DOWN || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_Y) > 0.1)) {
-			player.body.velocity.y += 5;
-		}
-		if (keyboardControls['a'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_LEFT || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) < -0.1)) {
-			player.body.velocity.x += -5;
-		} else if (keyboardControls['d'].isDown || pad1.isDown(Phaser.Gamepad.XBOX360_DPAD_RIGHT || pad1.axis(Phaser.Gamepad.XBOX360_STICK_LEFT_X) > 0.1)) {
-			player.body.velocity.x += 5;
-		}
+		inputControls.move();
 
 		//enemy actions
 		_.each(enemyAis, function (ai) {
