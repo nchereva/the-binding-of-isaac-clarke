@@ -7,7 +7,8 @@
   "dependencies": {
     "bower": "*",
     "browserify": "*",
-    "gulp": "*",
+    "jshint": "*",
+    "gulp": "3.8.11",
     "gulp-concat": "*",
     "gulp-connect": "*",
     "gulp-download": "*",
@@ -15,7 +16,7 @@
     "gulp-jshint": "*",
     "gulp-minify-css": "*",
     "gulp-minify-html": "*",
-    "gulp-processhtml": "*",
+    "gulp-processhtml": "1.0.0",
     "gulp-rename": "*",
     "gulp-rimraf": "*",
     "gulp-streamify": "*",
@@ -31,6 +32,7 @@
   "scripts": {
     "post-install": "node ./node_modules/bower/bin/bower install",
     "start": "node ./node_modules/gulp/bin/gulp.js",
+    "gulp": "gulp",
     "build": "node ./node_modules/gulp/bin/gulp.js build"
   }
 }
