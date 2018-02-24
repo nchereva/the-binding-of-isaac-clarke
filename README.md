@@ -3,9 +3,8 @@
 ##Installation 
 
 1. ```$ npm install```
-2. ```$ npm install -g gulp```
-3. ```$ gulp```
-4. ```$ profit```
+2. ```$ npm run gulp```
+3. Profit!
 
 ##Code style
 
